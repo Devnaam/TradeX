@@ -1,0 +1,108 @@
+/* Import Google Fonts FIRST */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: #F5F7FA;
+    --foreground: #111827;
+  }
+
+  body {
+    background: var(--background);
+    color: var(--foreground);
+    font-family: 'Inter', system-ui, sans-serif;
+    min-height: 100vh;
+  }
+}
+
+@layer components {
+  /* Primary Button */
+  .btn-primary {
+    @apply bg-primary text-white font-medium text-[15px] h-11 px-6 rounded-button 
+           transition-colors duration-200 w-full cursor-pointer
+           hover:bg-primary-dark disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  /* Secondary Button (Outline) */
+  .btn-secondary {
+    @apply border-2 border-primary text-primary bg-transparent font-medium text-[15px] 
+           h-11 px-6 rounded-button transition-all duration-200 w-full cursor-pointer
+           hover:bg-primary hover:text-white;
+  }
+
+  /* Success Button (Green) */
+  .btn-success {
+    @apply bg-secondary text-white font-medium text-[15px] h-11 px-6 rounded-button 
+           transition-colors duration-200 w-full cursor-pointer hover:bg-secondary-dark;
+  }
+
+  /* Card Component */
+  .card {
+    @apply bg-white border border-neutral-200 rounded-card p-4 shadow-card;
+  }
+
+  /* Input Field */
+  .input-field {
+    @apply w-full h-11 px-4 border border-neutral-300 rounded-button text-sm
+           focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary
+           placeholder:text-neutral-400;
+  }
+
+  /* Status Classes */
+  .status-pending {
+    @apply text-neutral-500 text-sm font-medium;
+  }
+
+  .status-approved {
+    @apply text-secondary text-sm font-medium;
+  }
+
+  .status-rejected {
+    @apply text-neutral-500 text-sm font-medium;
+  }
+
+  .status-active {
+    @apply text-secondary text-sm font-medium;
+  }
+
+  .status-expired {
+    @apply text-neutral-500 text-sm font-medium;
+  }
+
+  .status-blocked {
+    @apply text-neutral-500 text-sm font-medium;
+  }
+}
+
+@layer utilities {
+  /* Utility Classes */
+  .text-income {
+    @apply text-secondary font-semibold;
+  }
+
+  .text-amount {
+    @apply text-primary font-semibold;
+  }
+
+  .text-page-title {
+    @apply text-xl leading-7 font-semibold;
+  }
+
+  .text-section-title {
+    @apply text-base leading-6 font-semibold;
+  }
+}
+
+/* Responsive buttons on larger screens */
+@media (min-width: 640px) {
+  .btn-primary,
+  .btn-secondary,
+  .btn-success {
+    width: auto;
+    min-width: 120px;
+  }
+}
