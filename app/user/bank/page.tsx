@@ -14,7 +14,8 @@ interface BankDetails {
 
 export default function BankDetailsPage() {
   const router = useRouter();
-  const [formData, setFormData] = useState<BankDetails>({
+  const [bankDetails, setBankDetails] = useState<BankDetails | null>(null);
+  const [formData, setFormData] = useState({
     bankName: '',
     accountHolderName: '',
     accountNumber: '',
@@ -23,6 +24,7 @@ export default function BankDetailsPage() {
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [editing, setEditing] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
@@ -47,11 +49,17 @@ export default function BankDetailsPage() {
       });
 
       const data = await response.json();
+      
       if (data.success && data.data.bankDetails) {
+        setBankDetails(data.data.bankDetails);
         setFormData(data.data.bankDetails);
+      } else {
+        // No bank details exist, show form
+        setEditing(true);
       }
     } catch (error) {
       console.error('Failed to fetch bank details:', error);
+      setEditing(true); // Show form if error
     } finally {
       setLoading(false);
     }
@@ -84,7 +92,9 @@ export default function BankDetailsPage() {
       const data = await response.json();
 
       if (data.success) {
-        setSuccess('Bank details saved successfully!');
+        setSuccess('✅ Bank details saved successfully!');
+        setEditing(false);
+        setBankDetails(formData);
         setTimeout(() => setSuccess(''), 3000);
       } else {
         setError(data.error || 'Failed to save bank details');
@@ -120,123 +130,220 @@ export default function BankDetailsPage() {
         </div>
       </div>
 
-      <div className="max-w-md mx-auto p-4 space-y-6">
+      <div className="max-w-4xl mx-auto p-4 space-y-4">
         {/* Info Card */}
         <div className="card bg-blue-50 border-blue-200">
           <p className="text-sm text-blue-800">
-            💡 Add your bank details to enable withdrawals. All information is encrypted and secure.
+            🏦 Add your bank or UPI details for withdrawals. All information is encrypted and secure.
           </p>
         </div>
 
-        {/* Form Card */}
-        <div className="card">
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Success Message */}
-            {success && (
-              <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-button text-sm">
-                ✓ {success}
-              </div>
-            )}
+        {/* Success Message */}
+        {success && (
+          <div className="card bg-green-50 border-green-200">
+            <p className="text-sm text-green-800">{success}</p>
+          </div>
+        )}
+
+        {/* Display Mode - Show Saved Details */}
+        {!editing && bankDetails ? (
+          <div className="card">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-bold text-neutral-900">Your Bank Details</h3>
+              <button
+                onClick={() => setEditing(true)}
+                className="text-sm bg-primary text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                ✏️ Edit
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              {/* Account Holder Name */}
+              {bankDetails.accountHolderName && (
+                <div className="bg-neutral-50 p-3 rounded-lg border border-neutral-200">
+                  <p className="text-xs text-neutral-600 mb-1">Account Holder Name</p>
+                  <p className="text-base font-medium text-neutral-900">
+                    {bankDetails.accountHolderName}
+                  </p>
+                </div>
+              )}
+
+              {/* Bank Name */}
+              {bankDetails.bankName && (
+                <div className="bg-neutral-50 p-3 rounded-lg border border-neutral-200">
+                  <p className="text-xs text-neutral-600 mb-1">Bank Name</p>
+                  <p className="text-base font-medium text-neutral-900">{bankDetails.bankName}</p>
+                </div>
+              )}
+
+              {/* Account Number */}
+              {bankDetails.accountNumber && (
+                <div className="bg-neutral-50 p-3 rounded-lg border border-neutral-200">
+                  <p className="text-xs text-neutral-600 mb-1">Account Number</p>
+                  <p className="text-base font-medium text-neutral-900 font-mono">
+                    {bankDetails.accountNumber}
+                  </p>
+                </div>
+              )}
+
+              {/* IFSC Code */}
+              {bankDetails.ifscCode && (
+                <div className="bg-neutral-50 p-3 rounded-lg border border-neutral-200">
+                  <p className="text-xs text-neutral-600 mb-1">IFSC Code</p>
+                  <p className="text-base font-medium text-neutral-900 font-mono">
+                    {bankDetails.ifscCode}
+                  </p>
+                </div>
+              )}
+
+              {/* UPI ID */}
+              {bankDetails.upiId && (
+                <div className="bg-green-50 p-3 rounded-lg border border-green-200">
+                  <p className="text-xs text-green-700 mb-1">UPI ID</p>
+                  <p className="text-base font-medium text-green-900 font-mono">
+                    {bankDetails.upiId}
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        ) : (
+          /* Edit Mode - Form */
+          <form onSubmit={handleSubmit} className="card">
+            <h3 className="text-lg font-bold text-neutral-900 mb-4">
+              {bankDetails ? 'Edit Bank Details' : 'Add Bank Details'}
+            </h3>
 
             {/* Error Message */}
             {error && (
-              <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-button text-sm">
+              <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg text-sm mb-4">
                 {error}
               </div>
             )}
 
-            {/* Account Holder Name */}
-            <div>
-              <label className="block text-sm font-medium text-neutral-700 mb-1">
-                Account Holder Name *
-              </label>
-              <input
-                type="text"
-                className="input-field"
-                placeholder="As per bank records"
-                value={formData.accountHolderName}
-                onChange={(e) => setFormData({ ...formData, accountHolderName: e.target.value })}
-                required
-              />
-            </div>
+            <div className="space-y-4">
+              {/* Account Holder Name */}
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-2">
+                  Account Holder Name <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  className="input-field"
+                  placeholder="As per bank account"
+                  value={formData.accountHolderName}
+                  onChange={(e) =>
+                    setFormData({ ...formData, accountHolderName: e.target.value })
+                  }
+                  required
+                />
+              </div>
 
-            {/* Bank Name */}
-            <div>
-              <label className="block text-sm font-medium text-neutral-700 mb-1">
-                Bank Name
-              </label>
-              <input
-                type="text"
-                className="input-field"
-                placeholder="e.g., State Bank of India"
-                value={formData.bankName}
-                onChange={(e) => setFormData({ ...formData, bankName: e.target.value })}
-              />
-            </div>
+              {/* Bank Name */}
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-2">
+                  Bank Name
+                </label>
+                <input
+                  type="text"
+                  className="input-field"
+                  placeholder="e.g., State Bank of India"
+                  value={formData.bankName}
+                  onChange={(e) => setFormData({ ...formData, bankName: e.target.value })}
+                />
+              </div>
 
-            {/* Account Number */}
-            <div>
-              <label className="block text-sm font-medium text-neutral-700 mb-1">
-                Account Number
-              </label>
-              <input
-                type="text"
-                className="input-field"
-                placeholder="Enter account number"
-                value={formData.accountNumber}
-                onChange={(e) => setFormData({ ...formData, accountNumber: e.target.value })}
-              />
-            </div>
+              {/* Account Number */}
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-2">
+                  Account Number
+                </label>
+                <input
+                  type="text"
+                  className="input-field"
+                  placeholder="Enter account number"
+                  value={formData.accountNumber}
+                  onChange={(e) => setFormData({ ...formData, accountNumber: e.target.value })}
+                />
+              </div>
 
-            {/* IFSC Code */}
-            <div>
-              <label className="block text-sm font-medium text-neutral-700 mb-1">
-                IFSC Code
-              </label>
-              <input
-                type="text"
-                className="input-field"
-                placeholder="e.g., SBIN0001234"
-                value={formData.ifscCode}
-                onChange={(e) => setFormData({ ...formData, ifscCode: e.target.value.toUpperCase() })}
-              />
-            </div>
+              {/* IFSC Code */}
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-2">
+                  IFSC Code
+                </label>
+                <input
+                  type="text"
+                  className="input-field"
+                  placeholder="e.g., SBIN0001234"
+                  value={formData.ifscCode}
+                  onChange={(e) =>
+                    setFormData({ ...formData, ifscCode: e.target.value.toUpperCase() })
+                  }
+                />
+              </div>
 
-            {/* UPI ID */}
-            <div>
-              <label className="block text-sm font-medium text-neutral-700 mb-1">
-                UPI ID
-              </label>
-              <input
-                type="text"
-                className="input-field"
-                placeholder="yourname@upi"
-                value={formData.upiId}
-                onChange={(e) => setFormData({ ...formData, upiId: e.target.value })}
-              />
-            </div>
+              {/* Divider */}
+              <div className="flex items-center gap-3">
+                <div className="flex-1 h-px bg-neutral-200"></div>
+                <span className="text-xs text-neutral-500 font-medium">OR</span>
+                <div className="flex-1 h-px bg-neutral-200"></div>
+              </div>
 
-            {/* Submit Button */}
-            <button
-              type="submit"
-              className="btn-primary w-full"
-              disabled={saving}
-            >
-              {saving ? 'Saving...' : 'Save Bank Details'}
-            </button>
+              {/* UPI ID */}
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-2">
+                  UPI ID
+                </label>
+                <input
+                  type="text"
+                  className="input-field"
+                  placeholder="yourname@paytm"
+                  value={formData.upiId}
+                  onChange={(e) => setFormData({ ...formData, upiId: e.target.value })}
+                />
+                <p className="text-xs text-neutral-500 mt-1">
+                  Example: 1234567890@paytm, yourname@ybl, etc.
+                </p>
+              </div>
+
+              {/* Buttons */}
+              <div className="flex gap-3 pt-2">
+                {bankDetails && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditing(false);
+                      setError('');
+                      setFormData(bankDetails);
+                    }}
+                    className="flex-1 bg-neutral-200 text-neutral-700 px-4 py-3 rounded-lg font-medium hover:bg-neutral-300 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                )}
+                <button
+                  type="submit"
+                  disabled={saving}
+                  className="flex-1 btn-primary"
+                >
+                  {saving ? 'Saving...' : 'Save Bank Details'}
+                </button>
+              </div>
+            </div>
           </form>
-        </div>
+        )}
 
         {/* Security Note */}
-        <div className="card bg-neutral-50">
+        <div className="card bg-green-50 border-green-200">
           <div className="flex gap-3">
             <span className="text-2xl">🔒</span>
             <div>
-              <h3 className="text-sm font-semibold text-neutral-900 mb-1">
-                Your data is secure
-              </h3>
-              <p className="text-xs text-neutral-600">
-                All bank details are encrypted and stored securely. We never share your information with third parties.
+              <p className="text-sm font-bold text-green-900 mb-1">Your Data is Secure</p>
+              <p className="text-sm text-green-700">
+                All bank details are encrypted and stored securely. We never share your
+                information with third parties.
               </p>
             </div>
           </div>

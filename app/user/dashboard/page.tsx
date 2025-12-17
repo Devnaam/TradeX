@@ -74,6 +74,14 @@ export default function UserDashboard() {
     router.push('/login');
   };
 
+  const handleCopyReferralLink = () => {
+    if (data) {
+      const link = `${window.location.origin}/signup?ref=${data.user.referralCode}`;
+      navigator.clipboard.writeText(link);
+      alert('✓ Referral link copied to clipboard!');
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-neutral-50 flex items-center justify-center">
@@ -159,47 +167,71 @@ export default function UserDashboard() {
         <div className="card">
           <h3 className="text-section-title mb-3">Quick Access</h3>
           <div className="grid grid-cols-2 gap-2">
-            <Link href="/user/deposit/history" className="p-3 bg-neutral-50 hover:bg-neutral-100 rounded-button text-center transition-colors">
+            <Link 
+              href="/user/deposit/history" 
+              className="p-3 bg-neutral-50 hover:bg-neutral-100 rounded-button text-center transition-colors"
+            >
               <div className="text-2xl mb-1">💰</div>
               <p className="text-xs font-medium">Recharge Record</p>
             </Link>
-            <Link href="/user/withdraw/history" className="p-3 bg-neutral-50 hover:bg-neutral-100 rounded-button text-center transition-colors">
+            
+            <Link 
+              href="/user/withdraw/history" 
+              className="p-3 bg-neutral-50 hover:bg-neutral-100 rounded-button text-center transition-colors"
+            >
               <div className="text-2xl mb-1">💸</div>
               <p className="text-xs font-medium">Withdraw Record</p>
             </Link>
-            <Link href="/user/investments" className="p-3 bg-neutral-50 hover:bg-neutral-100 rounded-button text-center transition-colors">
+            
+            <Link 
+              href="/user/investments" 
+              className="p-3 bg-neutral-50 hover:bg-neutral-100 rounded-button text-center transition-colors"
+            >
               <div className="text-2xl mb-1">📊</div>
               <p className="text-xs font-medium">My Investment</p>
             </Link>
-            <Link href="/user/bank" className="p-3 bg-neutral-50 hover:bg-neutral-100 rounded-button text-center transition-colors">
+            
+            <Link 
+              href="/user/bank" 
+              className="p-3 bg-neutral-50 hover:bg-neutral-100 rounded-button text-center transition-colors"
+            >
               <div className="text-2xl mb-1">🏦</div>
               <p className="text-xs font-medium">My Bank</p>
             </Link>
-            <a href="https://t.me/tradex_support" target="_blank" rel="noopener noreferrer" className="p-3 bg-neutral-50 hover:bg-neutral-100 rounded-button text-center transition-colors">
+            
+            <Link 
+              href="/user/referrals" 
+              className="p-3 bg-neutral-50 hover:bg-neutral-100 rounded-button text-center transition-colors"
+            >
+              <div className="text-2xl mb-1">🔗</div>
+              <p className="text-xs font-medium">Referrals</p>
+            </Link>
+            
+            <a 
+              href="https://t.me/tradex_support" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="p-3 bg-neutral-50 hover:bg-neutral-100 rounded-button text-center transition-colors"
+            >
               <div className="text-2xl mb-1">💬</div>
               <p className="text-xs font-medium">Support</p>
             </a>
-            <Link href="/user/change-password" className="p-3 bg-neutral-50 hover:bg-neutral-100 rounded-button text-center transition-colors">
-              <div className="text-2xl mb-1">🔒</div>
-              <p className="text-xs font-medium">Change Password</p>
-            </Link>
           </div>
         </div>
 
         {/* Referral Code Card */}
-        <div className="card bg-gradient-to-r from-primary/5 to-secondary/5 border-primary/20">
+        <div className="card bg-blue-50 border-blue-200">
           <div className="text-center">
             <p className="text-sm text-neutral-600 mb-1">Your Referral Code</p>
-            <p className="text-2xl font-bold text-primary mb-3">{data.user.referralCode}</p>
+            <p className="text-2xl font-bold text-primary mb-2">{data.user.referralCode}</p>
+            <p className="text-xs text-neutral-500 mb-3">
+              Earn 10% commission on every deposit!
+            </p>
             <button
-              onClick={() => {
-                const link = `${window.location.origin}/signup?ref=${data.user.referralCode}`;
-                navigator.clipboard.writeText(link);
-                alert('Referral link copied!');
-              }}
-              className="btn-secondary"
+              onClick={handleCopyReferralLink}
+              className="btn-secondary w-full"
             >
-              Copy Referral Link
+              📋 Copy Referral Link
             </button>
           </div>
         </div>

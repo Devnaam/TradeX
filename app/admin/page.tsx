@@ -1,234 +1,116 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 
-interface Stats {
-  totalUsers: number;
-  blockedUsers: number;
-  totalDeposits: {
-    pending: number;
-    approved: number;
-    rejected: number;
-    totalAmount: number;
-  };
-  totalWithdrawals: {
-    pending: number;
-    approved: number;
-    rejected: number;
-    totalAmount: number;
-  };
-  activePlans: number;
-  totalPlans: number;
-}
-
-export default function AdminDashboard() {
+export default function AdminLoginPage() {
   const router = useRouter();
-  const [stats, setStats] = useState<Stats | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [formData, setFormData] = useState({
+    username: '',
+    password: '',
+  });
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    fetchStats();
-  }, []);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
 
-  const fetchStats = async () => {
     try {
-      const response = await fetch('/api/admin/stats');
+      const response = await fetch('/api/auth/admin/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
       const data = await response.json();
 
       if (data.success) {
-        setStats(data.data.stats);
+        router.push('/admin/dashboard');
       } else {
-        console.error('Failed to fetch stats:', data.error);
+        setError(data.error || 'Login failed');
       }
-    } catch (error) {
-      console.error('Error fetching stats:', error);
+    } catch (err) {
+      setError('Something went wrong. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleLogout = async () => {
-    await fetch('/api/auth/logout', { method: 'POST' });
-    router.push('/admin');
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-neutral-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent"></div>
-          <p className="mt-4 text-neutral-600">Loading dashboard...</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-neutral-50">
-      {/* Header */}
-      <div className="bg-primary text-white p-4">
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <div>
-            <h1 className="text-xl font-bold">TradeX Admin Panel</h1>
-            <p className="text-sm text-white/80">Control Dashboard</p>
-          </div>
-          <button
-            onClick={handleLogout}
-            className="text-sm bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg transition-colors"
-          >
-            Logout
-          </button>
-        </div>
-      </div>
-
-      <div className="max-w-7xl mx-auto p-4 space-y-6">
-        {/* Top Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {/* Total Users */}
-          <div className="card bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
-            <div className="flex justify-between items-start mb-2">
-              <p className="text-sm text-blue-700 font-medium">Total Users</p>
-              <span className="text-2xl">👥</span>
-            </div>
-            <p className="text-3xl font-bold text-blue-900">{stats?.totalUsers || 0}</p>
-            <p className="text-xs text-blue-600 mt-1">
-              {stats?.blockedUsers || 0} blocked
-            </p>
-          </div>
-
-          {/* Pending Deposits */}
-          <div className="card bg-gradient-to-br from-yellow-50 to-yellow-100 border-yellow-200">
-            <div className="flex justify-between items-start mb-2">
-              <p className="text-sm text-yellow-700 font-medium">Pending Deposits</p>
-              <span className="text-2xl">💰</span>
-            </div>
-            <p className="text-3xl font-bold text-yellow-900">
-              {stats?.totalDeposits.pending || 0}
-            </p>
-            <p className="text-xs text-yellow-600 mt-1">Awaiting approval</p>
-          </div>
-
-          {/* Pending Withdrawals */}
-          <div className="card bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200">
-            <div className="flex justify-between items-start mb-2">
-              <p className="text-sm text-orange-700 font-medium">Pending Withdrawals</p>
-              <span className="text-2xl">💸</span>
-            </div>
-            <p className="text-3xl font-bold text-orange-900">
-              {stats?.totalWithdrawals.pending || 0}
-            </p>
-            <p className="text-xs text-orange-600 mt-1">Awaiting approval</p>
-          </div>
-
-          {/* Active Plans */}
-          <div className="card bg-gradient-to-br from-green-50 to-green-100 border-green-200">
-            <div className="flex justify-between items-start mb-2">
-              <p className="text-sm text-green-700 font-medium">Active Plans</p>
-              <span className="text-2xl">📊</span>
-            </div>
-            <p className="text-3xl font-bold text-green-900">{stats?.activePlans || 0}</p>
-            <p className="text-xs text-green-600 mt-1">
-              of {stats?.totalPlans || 0} total
-            </p>
-          </div>
+    <div className="min-h-screen bg-neutral-50 flex items-center justify-center p-4">
+      <div className="w-full max-w-md">
+        {/* Logo/Title */}
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-primary mb-2">TradeX Admin</h1>
+          <p className="text-neutral-600">Admin Control Panel</p>
         </div>
 
-        {/* Deposit & Withdrawal Details */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Deposits Breakdown */}
-          <div className="card">
-            <h3 className="text-lg font-bold text-neutral-900 mb-4 flex items-center gap-2">
-              💰 Deposit Statistics
-            </h3>
-            <div className="space-y-3">
-              <div className="flex justify-between items-center p-3 bg-yellow-50 rounded-lg border border-yellow-200">
-                <span className="text-yellow-700 font-medium">Pending</span>
-                <span className="text-xl font-bold text-yellow-900">
-                  {stats?.totalDeposits.pending || 0}
-                </span>
-              </div>
-              <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg border border-green-200">
-                <span className="text-green-700 font-medium">Approved</span>
-                <span className="text-xl font-bold text-green-900">
-                  {stats?.totalDeposits.approved || 0}
-                </span>
-              </div>
-              <div className="flex justify-between items-center p-3 bg-red-50 rounded-lg border border-red-200">
-                <span className="text-red-700 font-medium">Rejected</span>
-                <span className="text-xl font-bold text-red-900">
-                  {stats?.totalDeposits.rejected || 0}
-                </span>
-              </div>
-            </div>
-          </div>
+        {/* Login Card */}
+        <div className="card">
+          <h2 className="text-xl font-bold text-neutral-900 mb-6">Admin Login</h2>
 
-          {/* Withdrawals Breakdown */}
-          <div className="card">
-            <h3 className="text-lg font-bold text-neutral-900 mb-4 flex items-center gap-2">
-              💸 Withdrawal Statistics
-            </h3>
-            <div className="space-y-3">
-              <div className="flex justify-between items-center p-3 bg-yellow-50 rounded-lg border border-yellow-200">
-                <span className="text-yellow-700 font-medium">Pending</span>
-                <span className="text-xl font-bold text-yellow-900">
-                  {stats?.totalWithdrawals.pending || 0}
-                </span>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Error Message */}
+            {error && (
+              <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg text-sm">
+                {error}
               </div>
-              <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg border border-green-200">
-                <span className="text-green-700 font-medium">Approved</span>
-                <span className="text-xl font-bold text-green-900">
-                  {stats?.totalWithdrawals.approved || 0}
-                </span>
-              </div>
-              <div className="flex justify-between items-center p-3 bg-red-50 rounded-lg border border-red-200">
-                <span className="text-red-700 font-medium">Rejected</span>
-                <span className="text-xl font-bold text-red-900">
-                  {stats?.totalWithdrawals.rejected || 0}
-                </span>
-              </div>
+            )}
+
+            {/* Username */}
+            <div>
+              <label className="block text-sm font-medium text-neutral-700 mb-2">
+                Username
+              </label>
+              <input
+                type="text"
+                className="input-field"
+                placeholder="Enter admin username"
+                value={formData.username}
+                onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                required
+              />
             </div>
-          </div>
+
+            {/* Password */}
+            <div>
+              <label className="block text-sm font-medium text-neutral-700 mb-2">
+                Password
+              </label>
+              <input
+                type="password"
+                className="input-field"
+                placeholder="Enter admin password"
+                value={formData.password}
+                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                required
+              />
+            </div>
+
+            {/* Login Button */}
+            <button
+              type="submit"
+              className="btn-primary w-full"
+              disabled={loading}
+            >
+              {loading ? 'Logging in...' : 'Login'}
+            </button>
+          </form>
         </div>
 
-        {/* Quick Action Buttons */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Link href="/admin/users">
-            <div className="card hover:shadow-lg transition-all cursor-pointer bg-gradient-to-br from-white to-blue-50 border-blue-100">
-              <div className="flex items-center gap-4">
-                <div className="text-4xl">👥</div>
-                <div className="flex-1">
-                  <h3 className="font-bold text-neutral-900 text-lg">Manage Users</h3>
-                  <p className="text-sm text-neutral-600">View, block, unblock users</p>
-                </div>
-              </div>
-            </div>
-          </Link>
-
-          <Link href="/admin/deposits">
-            <div className="card hover:shadow-lg transition-all cursor-pointer bg-gradient-to-br from-white to-green-50 border-green-100">
-              <div className="flex items-center gap-4">
-                <div className="text-4xl">💰</div>
-                <div className="flex-1">
-                  <h3 className="font-bold text-neutral-900 text-lg">Manage Deposits</h3>
-                  <p className="text-sm text-neutral-600">Approve/reject deposits</p>
-                </div>
-              </div>
-            </div>
-          </Link>
-
-          <Link href="/admin/withdrawals">
-            <div className="card hover:shadow-lg transition-all cursor-pointer bg-gradient-to-br from-white to-orange-50 border-orange-100">
-              <div className="flex items-center gap-4">
-                <div className="text-4xl">💸</div>
-                <div className="flex-1">
-                  <h3 className="font-bold text-neutral-900 text-lg">Manage Withdrawals</h3>
-                  <p className="text-sm text-neutral-600">Approve/reject withdrawals</p>
-                </div>
-              </div>
-            </div>
-          </Link>
+        {/* Credentials Info */}
+        <div className="card bg-blue-50 border-blue-200 mt-4">
+          <p className="text-xs text-blue-800">
+            🔒 <strong>Admin Access Only:</strong> This area is restricted to authorized administrators.
+          </p>
+          <div className="mt-2 text-xs text-blue-700">
+            <p><strong>Username:</strong> tradex_admin</p>
+            <p><strong>Password:</strong> TrX@2025#Secure</p>
+          </div>
         </div>
       </div>
     </div>
