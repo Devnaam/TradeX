@@ -101,7 +101,7 @@ model Withdrawal {
 }
 
 // ============================================
-// 5. PLANS TABLE (Pre-populated)
+// 5. PLANS TABLE (Pre-populated) - UPDATED
 // ============================================
 model Plan {
   id           Int      @id @default(autoincrement())
@@ -109,6 +109,7 @@ model Plan {
   amount       Decimal  @db.Decimal(10, 2)
   dailyIncome  Decimal  @map("daily_income") @db.Decimal(10, 2)
   validityDays Int      @default(95) @map("validity_days")
+  isActive     Boolean  @default(true) @map("is_active") // ADDED THIS
 
   // Relations
   userPlans    UserPlan[]
@@ -117,16 +118,18 @@ model Plan {
 }
 
 // ============================================
-// 6. USER PLANS TABLE
+// 6. USER PLANS TABLE - UPDATED
 // ============================================
 model UserPlan {
-  id         Int      @id @default(autoincrement())
-  userId     Int      @map("user_id")
-  planId     Int      @map("plan_id")
-  startDate  DateTime @map("start_date") @db.Date
-  expiryDate DateTime @map("expiry_date") @db.Date
-  status     String   @default("active") @db.VarChar(20) // active, expired, blocked
-  createdAt  DateTime @default(now()) @map("created_at")
+  id          Int      @id @default(autoincrement())
+  userId      Int      @map("user_id")
+  planId      Int      @map("plan_id")
+  amount      Decimal  @db.Decimal(10, 2) // ADDED - Store plan amount
+  dailyIncome Decimal  @map("daily_income") @db.Decimal(10, 2) // ADDED - Store daily income
+  startDate   DateTime @map("start_date") @db.Date
+  expiryDate  DateTime @map("expiry_date") @db.Date
+  status      String   @default("active") @db.VarChar(20) // active, expired, blocked
+  createdAt   DateTime @default(now()) @map("created_at")
 
   // Relations
   user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)

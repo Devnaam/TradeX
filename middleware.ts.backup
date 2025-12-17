@@ -1,0 +1,76 @@
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
+import { verifyToken } from './lib/auth';
+
+export function middleware(request: NextRequest) {
+  const token = request.cookies.get('auth-token')?.value;
+  const pathname = request.nextUrl.pathname; // Fixed: use nextUrl.pathname
+
+  // Public routes (accessible without login)
+  const publicRoutes = ['/', '/login', '/signup'];
+  const isPublicRoute = publicRoutes.some(route => pathname === route);
+
+  // Admin routes
+  const isAdminRoute = pathname.startsWith('/admin');
+
+  // User routes
+  const isUserRoute = pathname.startsWith('/user');
+
+  // If public route, allow access
+  if (isPublicRoute) {
+    // If already logged in, redirect to appropriate dashboard
+    if (token) {
+      const payload = verifyToken(token);
+      if (payload) {
+        if (payload.role === 'admin') {
+          return NextResponse.redirect(new URL('/admin/dashboard', request.url));
+        }
+        return NextResponse.redirect(new URL('/user/dashboard', request.url));
+      }
+    }
+    return NextResponse.next();
+  }
+
+  // Check if user is authenticated
+  if (!token) {
+    // Redirect to login if trying to access protected routes
+    if (isAdminRoute) {
+      return NextResponse.redirect(new URL('/admin', request.url));
+    }
+    return NextResponse.redirect(new URL('/login', request.url));
+  }
+
+  // Verify token
+  const payload = verifyToken(token);
+  if (!payload) {
+    // Invalid token, clear cookie and redirect to login
+    const response = isAdminRoute 
+      ? NextResponse.redirect(new URL('/admin', request.url))
+      : NextResponse.redirect(new URL('/login', request.url));
+    response.cookies.delete('auth-token');
+    return response;
+  }
+
+  // Check role-based access
+  if (isAdminRoute && payload.role !== 'admin') {
+    // User trying to access admin routes
+    return NextResponse.redirect(new URL('/user/dashboard', request.url));
+  }
+
+  if (isUserRoute && payload.role !== 'user') {
+    // Admin trying to access user routes
+    return NextResponse.redirect(new URL('/admin/dashboard', request.url));
+  }
+
+  return NextResponse.next();
+}
+
+export const config = {
+  matcher: [
+    '/',
+    '/login',
+    '/signup',
+    '/user/:path*',
+    '/admin/:path*',
+  ],
+};
