@@ -100,7 +100,7 @@ export default function UserDashboard() {
   }
 
   return (
-    
+
     <div className="min-h-screen bg-neutral-50">
       {/* Header */}
       <div className="bg-primary text-white p-4">
@@ -170,55 +170,55 @@ export default function UserDashboard() {
         <div className="card">
           <h3 className="text-section-title mb-3">Quick Access</h3>
           <div className="grid grid-cols-2 gap-2">
-            <Link 
-              href="/user/deposit/history" 
+            <Link
+              href="/user/deposit/history"
               className="p-3 bg-neutral-50 hover:bg-neutral-100 rounded-button text-center transition-colors"
             >
               <div className="text-2xl mb-1">💰</div>
               <p className="text-xs font-medium">Recharge Record</p>
             </Link>
-            
-            <Link 
-              href="/user/withdraw/history" 
+
+            <Link
+              href="/user/withdraw/history"
               className="p-3 bg-neutral-50 hover:bg-neutral-100 rounded-button text-center transition-colors"
             >
               <div className="text-2xl mb-1">💸</div>
               <p className="text-xs font-medium">Withdraw Record</p>
             </Link>
-            
-            <Link 
-              href="/user/investments" 
+
+            <Link
+              href="/user/investments"
               className="p-3 bg-neutral-50 hover:bg-neutral-100 rounded-button text-center transition-colors"
             >
               <div className="text-2xl mb-1">📊</div>
               <p className="text-xs font-medium">My Investment</p>
             </Link>
-            
-            <Link 
-              href="/user/bank" 
+
+            <Link
+              href="/user/bank"
               className="p-3 bg-neutral-50 hover:bg-neutral-100 rounded-button text-center transition-colors"
             >
               <div className="text-2xl mb-1">🏦</div>
               <p className="text-xs font-medium">My Bank</p>
             </Link>
-            
-            <Link 
-              href="/user/referrals" 
+
+            <Link
+              href="/user/referrals"
               className="p-3 bg-neutral-50 hover:bg-neutral-100 rounded-button text-center transition-colors"
             >
               <div className="text-2xl mb-1">🔗</div>
               <p className="text-xs font-medium">Referrals</p>
             </Link>
-            
-            <a 
-              href="https://t.me/tradex_support" 
-              target="_blank" 
-              rel="noopener noreferrer" 
-              className="p-3 bg-neutral-50 hover:bg-neutral-100 rounded-button text-center transition-colors"
-            >
-              <div className="text-2xl mb-1">💬</div>
-              <p className="text-xs font-medium">Support</p>
-            </a>
+
+            <Link href="/user/support">
+              <button className="p-3 bg-neutral-50 hover:bg-neutral-100 rounded-lg text-center transition-colors w-full">
+                <div className="flex flex-col items-center gap-2">
+                  <span className="text-2xl">💬</span>
+                  <span className="text-sm font-medium text-neutral-900">Support</span>
+                </div>
+              </button>
+            </Link>
+
           </div>
         </div>
 

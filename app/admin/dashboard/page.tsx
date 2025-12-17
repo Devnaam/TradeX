@@ -4,20 +4,18 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
-interface Stats {
+interface DashboardStats {
   totalUsers: number;
   blockedUsers: number;
-  totalDeposits: { 
-    pending: number; 
-    approved: number; 
+  totalDeposits: {
+    pending: number;
+    approved: number;
     rejected: number;
-    totalAmount: number;
   };
-  totalWithdrawals: { 
-    pending: number; 
-    approved: number; 
+  totalWithdrawals: {
+    pending: number;
+    approved: number;
     rejected: number;
-    totalAmount: number;
   };
   activePlans: number;
   totalPlans: number;
@@ -25,9 +23,9 @@ interface Stats {
 
 export default function AdminDashboard() {
   const router = useRouter();
-  const [stats, setStats] = useState<Stats | null>(null);
+  const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
-  const [cronLoading, setCronLoading] = useState(false);
+  const [triggeringCron, setTriggeringCron] = useState(false);
 
   useEffect(() => {
     fetchStats();
@@ -35,62 +33,54 @@ export default function AdminDashboard() {
 
   const fetchStats = async () => {
     try {
-      const response = await fetch('/api/admin/stats');
+      const response = await fetch('/api/admin/dashboard');
       const data = await response.json();
-      
+
       if (data.success) {
         setStats(data.data.stats);
-      } else {
-        console.error('Failed to fetch stats:', data.error);
       }
     } catch (error) {
-      console.error('Error fetching stats:', error);
+      console.error('Failed to fetch stats:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleLogout = async () => {
-    await fetch('/api/auth/logout', { method: 'POST' });
-    router.push('/admin');
-  };
-
   const handleTriggerCron = async () => {
-    const confirmed = window.confirm(
-      '⚠️ This will manually trigger daily income distribution.\n\nAre you sure you want to continue?'
-    );
+    if (!confirm('⚠️ This will trigger daily income for all active plans. Continue?')) {
+      return;
+    }
 
-    if (!confirmed) return;
-
-    setCronLoading(true);
+    setTriggeringCron(true);
 
     try {
-      const response = await fetch('/api/admin/trigger-cron', {
+      const response = await fetch('/api/cron/daily-income', {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-cron-secret': process.env.NEXT_PUBLIC_CRON_SECRET || 'tradex_cron_secret_2025_super_secure',
+        },
       });
 
       const data = await response.json();
 
       if (data.success) {
-        const result = data.data.data;
-        alert(
-          `✅ Cron Job Executed Successfully!\n\n` +
-          `📊 Plans Processed: ${result.processed}\n` +
-          `⏰ Plans Expired: ${result.expired}\n` +
-          `⏭️ Plans Skipped: ${result.skipped}\n` +
-          `💰 Total Income Added: ₹${result.totalIncomeAdded}`
-        );
-        // Refresh stats after cron execution
-        fetchStats();
+        alert(`✅ Daily income distributed!\n\n${data.message}`);
+        fetchStats(); // Refresh stats
       } else {
-        alert('❌ Failed to trigger cron job: ' + (data.error || 'Unknown error'));
+        alert('❌ Error: ' + data.error);
       }
     } catch (error) {
       console.error('Cron trigger error:', error);
-      alert('❌ Something went wrong. Please try again.');
+      alert('❌ Failed to trigger cron job');
     } finally {
-      setCronLoading(false);
+      setTriggeringCron(false);
     }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('admin-token');
+    router.push('/admin');
   };
 
   if (loading) {
@@ -107,210 +97,217 @@ export default function AdminDashboard() {
   return (
     <div className="min-h-screen bg-neutral-50">
       {/* Header */}
-      <div className="bg-primary text-white p-4">
+      <div className="bg-primary text-white p-4 shadow-md">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <div>
-            <h1 className="text-xl font-bold">TradeX Admin Panel</h1>
-            <p className="text-sm text-white/80">Control Dashboard</p>
+            <h1 className="text-xl font-bold">Admin Control Panel</h1>
+            <p className="text-sm text-blue-200">TradeX Platform Management</p>
           </div>
           <button
             onClick={handleLogout}
-            className="text-sm bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg transition-colors"
+            className="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
           >
-            Logout
+            🚪 Logout
           </button>
         </div>
       </div>
 
       <div className="max-w-7xl mx-auto p-4 space-y-6">
-        {/* Top Stats Grid */}
+        {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Total Users */}
           <div className="card bg-blue-50 border-blue-200">
-            <div className="flex justify-between items-start mb-2">
-              <p className="text-sm text-blue-700 font-medium">Total Users</p>
-              <span className="text-2xl">👥</span>
+            <div className="flex items-start justify-between mb-2">
+              <div className="text-3xl">👥</div>
+              <Link href="/admin/users">
+                <button className="text-xs text-primary hover:underline">View All →</button>
+              </Link>
             </div>
-            <p className="text-3xl font-bold text-blue-900">{stats?.totalUsers || 0}</p>
-            <p className="text-xs text-blue-600 mt-1">
+            <p className="text-sm text-neutral-600 mb-1">Total Users</p>
+            <p className="text-3xl font-bold text-primary">{stats?.totalUsers || 0}</p>
+            <p className="text-xs text-neutral-500 mt-1">
               {stats?.blockedUsers || 0} blocked
             </p>
           </div>
 
           {/* Pending Deposits */}
-          <div className="card bg-yellow-50 border-yellow-200">
-            <div className="flex justify-between items-start mb-2">
-              <p className="text-sm text-yellow-700 font-medium">Pending Deposits</p>
-              <span className="text-2xl">💰</span>
+          <div className="card bg-green-50 border-green-200">
+            <div className="flex items-start justify-between mb-2">
+              <div className="text-3xl">💰</div>
+              <Link href="/admin/deposits">
+                <button className="text-xs text-secondary hover:underline">Manage →</button>
+              </Link>
             </div>
-            <p className="text-3xl font-bold text-yellow-900">
+            <p className="text-sm text-neutral-600 mb-1">Pending Deposits</p>
+            <p className="text-3xl font-bold text-secondary">
               {stats?.totalDeposits.pending || 0}
             </p>
-            <p className="text-xs text-yellow-600 mt-1">Awaiting approval</p>
+            <p className="text-xs text-neutral-500 mt-1">Awaiting approval</p>
           </div>
 
           {/* Pending Withdrawals */}
-          <div className="card bg-orange-50 border-orange-200">
-            <div className="flex justify-between items-start mb-2">
-              <p className="text-sm text-orange-700 font-medium">Pending Withdrawals</p>
-              <span className="text-2xl">💸</span>
+          <div className="card bg-yellow-50 border-yellow-200">
+            <div className="flex items-start justify-between mb-2">
+              <div className="text-3xl">💸</div>
+              <Link href="/admin/withdrawals">
+                <button className="text-xs text-yellow-700 hover:underline">Manage →</button>
+              </Link>
             </div>
-            <p className="text-3xl font-bold text-orange-900">
+            <p className="text-sm text-neutral-600 mb-1">Pending Withdrawals</p>
+            <p className="text-3xl font-bold text-yellow-700">
               {stats?.totalWithdrawals.pending || 0}
             </p>
-            <p className="text-xs text-orange-600 mt-1">Awaiting approval</p>
+            <p className="text-xs text-neutral-500 mt-1">Awaiting approval</p>
           </div>
 
           {/* Active Plans */}
-          <div className="card bg-green-50 border-green-200">
-            <div className="flex justify-between items-start mb-2">
-              <p className="text-sm text-green-700 font-medium">Active Plans</p>
-              <span className="text-2xl">📊</span>
+          <div className="card bg-purple-50 border-purple-200">
+            <div className="flex items-start justify-between mb-2">
+              <div className="text-3xl">📊</div>
+              <span className="text-xs text-purple-700">Live Stats</span>
             </div>
-            <p className="text-3xl font-bold text-green-900">{stats?.activePlans || 0}</p>
-            <p className="text-xs text-green-600 mt-1">
+            <p className="text-sm text-neutral-600 mb-1">Active Plans</p>
+            <p className="text-3xl font-bold text-purple-700">{stats?.activePlans || 0}</p>
+            <p className="text-xs text-neutral-500 mt-1">
               of {stats?.totalPlans || 0} total
             </p>
           </div>
         </div>
 
-        {/* Deposit & Withdrawal Details */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Deposits Breakdown */}
+        {/* Quick Links */}
+        <div className="card">
+          <h2 className="text-lg font-bold text-neutral-900 mb-4">Quick Actions</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+            <Link href="/admin/users">
+              <button className="w-full bg-neutral-50 hover:bg-neutral-100 border border-neutral-200 p-4 rounded-lg text-left transition-colors">
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl">👥</span>
+                  <div>
+                    <p className="font-bold text-neutral-900">Manage Users</p>
+                    <p className="text-xs text-neutral-600">View, block, unblock users</p>
+                  </div>
+                </div>
+              </button>
+            </Link>
+
+            <Link href="/admin/deposits">
+              <button className="w-full bg-neutral-50 hover:bg-neutral-100 border border-neutral-200 p-4 rounded-lg text-left transition-colors">
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl">💰</span>
+                  <div>
+                    <p className="font-bold text-neutral-900">Deposits</p>
+                    <p className="text-xs text-neutral-600">Approve/reject deposits</p>
+                  </div>
+                </div>
+              </button>
+            </Link>
+
+            <Link href="/admin/withdrawals">
+              <button className="w-full bg-neutral-50 hover:bg-neutral-100 border border-neutral-200 p-4 rounded-lg text-left transition-colors">
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl">💸</span>
+                  <div>
+                    <p className="font-bold text-neutral-900">Withdrawals</p>
+                    <p className="text-xs text-neutral-600">Approve/reject withdrawals</p>
+                  </div>
+                </div>
+              </button>
+            </Link>
+
+            <Link href="/admin/settings">
+              <button className="w-full bg-blue-50 hover:bg-blue-100 border border-blue-200 p-4 rounded-lg text-left transition-colors">
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl">⚙️</span>
+                  <div>
+                    <p className="font-bold text-primary">Platform Settings</p>
+                    <p className="text-xs text-blue-700">QR Code & UPI ID</p>
+                  </div>
+                </div>
+              </button>
+            </Link>
+          </div>
+        </div>
+
+        {/* Manual Cron Trigger */}
+        <div className="card bg-yellow-50 border-yellow-200">
+          <h2 className="text-lg font-bold text-neutral-900 mb-2">
+            ⚡ Manual Daily Income Trigger
+          </h2>
+          <p className="text-sm text-neutral-600 mb-4">
+            This manually triggers the daily income cron job. Normally runs automatically at
+            12:00 AM IST. Use this for testing or emergency income distribution.
+          </p>
+          
+          <div className="bg-white p-4 rounded-lg border border-yellow-300 mb-4">
+            <p className="text-sm font-bold text-yellow-900 mb-2">⚠️ What this does:</p>
+            <ul className="text-sm text-yellow-800 space-y-1">
+              <li>• Adds daily income to all active plans</li>
+              <li>• Auto-expires plans that completed 95 days</li>
+              <li>• Skips blocked users</li>
+              <li>• Creates income log entries</li>
+            </ul>
+          </div>
+
+          <button
+            onClick={handleTriggerCron}
+            disabled={triggeringCron}
+            className="btn-primary w-full md:w-auto"
+          >
+            {triggeringCron ? 'Processing...' : '⚡ Trigger Daily Income Now'}
+          </button>
+        </div>
+
+        {/* Stats Overview */}
+        <div className="grid md:grid-cols-2 gap-6">
+          {/* Deposits Stats */}
           <div className="card">
-            <h3 className="text-lg font-bold text-neutral-900 mb-4 flex items-center gap-2">
-              💰 Deposit Statistics
-            </h3>
+            <h3 className="text-base font-bold text-neutral-900 mb-4">Deposit Statistics</h3>
             <div className="space-y-3">
-              <div className="flex justify-between items-center p-3 bg-yellow-50 rounded-lg border border-yellow-200">
-                <span className="text-yellow-700 font-medium">Pending</span>
-                <span className="text-xl font-bold text-yellow-900">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-neutral-600">Pending</span>
+                <span className="text-lg font-bold text-yellow-600">
                   {stats?.totalDeposits.pending || 0}
                 </span>
               </div>
-              <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg border border-green-200">
-                <span className="text-green-700 font-medium">Approved</span>
-                <span className="text-xl font-bold text-green-900">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-neutral-600">Approved</span>
+                <span className="text-lg font-bold text-secondary">
                   {stats?.totalDeposits.approved || 0}
                 </span>
               </div>
-              <div className="flex justify-between items-center p-3 bg-red-50 rounded-lg border border-red-200">
-                <span className="text-red-700 font-medium">Rejected</span>
-                <span className="text-xl font-bold text-red-900">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-neutral-600">Rejected</span>
+                <span className="text-lg font-bold text-neutral-500">
                   {stats?.totalDeposits.rejected || 0}
                 </span>
               </div>
             </div>
           </div>
 
-          {/* Withdrawals Breakdown */}
+          {/* Withdrawals Stats */}
           <div className="card">
-            <h3 className="text-lg font-bold text-neutral-900 mb-4 flex items-center gap-2">
-              💸 Withdrawal Statistics
-            </h3>
+            <h3 className="text-base font-bold text-neutral-900 mb-4">Withdrawal Statistics</h3>
             <div className="space-y-3">
-              <div className="flex justify-between items-center p-3 bg-yellow-50 rounded-lg border border-yellow-200">
-                <span className="text-yellow-700 font-medium">Pending</span>
-                <span className="text-xl font-bold text-yellow-900">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-neutral-600">Pending</span>
+                <span className="text-lg font-bold text-yellow-600">
                   {stats?.totalWithdrawals.pending || 0}
                 </span>
               </div>
-              <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg border border-green-200">
-                <span className="text-green-700 font-medium">Approved</span>
-                <span className="text-xl font-bold text-green-900">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-neutral-600">Approved</span>
+                <span className="text-lg font-bold text-secondary">
                   {stats?.totalWithdrawals.approved || 0}
                 </span>
               </div>
-              <div className="flex justify-between items-center p-3 bg-red-50 rounded-lg border border-red-200">
-                <span className="text-red-700 font-medium">Rejected</span>
-                <span className="text-xl font-bold text-red-900">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-neutral-600">Rejected</span>
+                <span className="text-lg font-bold text-neutral-500">
                   {stats?.totalWithdrawals.rejected || 0}
                 </span>
               </div>
             </div>
           </div>
-        </div>
-
-        {/* Quick Action Buttons */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Link href="/admin/users">
-            <div className="card hover:shadow-lg transition-all cursor-pointer bg-blue-50 border-blue-200">
-              <div className="flex items-center gap-4">
-                <div className="text-4xl">👥</div>
-                <div className="flex-1">
-                  <h3 className="font-bold text-neutral-900 text-lg">Manage Users</h3>
-                  <p className="text-sm text-neutral-600">View, block, unblock users</p>
-                </div>
-              </div>
-            </div>
-          </Link>
-
-          <Link href="/admin/deposits">
-            <div className="card hover:shadow-lg transition-all cursor-pointer bg-green-50 border-green-200">
-              <div className="flex items-center gap-4">
-                <div className="text-4xl">💰</div>
-                <div className="flex-1">
-                  <h3 className="font-bold text-neutral-900 text-lg">Manage Deposits</h3>
-                  <p className="text-sm text-neutral-600">Approve/reject deposits</p>
-                </div>
-              </div>
-            </div>
-          </Link>
-
-          <Link href="/admin/withdrawals">
-            <div className="card hover:shadow-lg transition-all cursor-pointer bg-orange-50 border-orange-200">
-              <div className="flex items-center gap-4">
-                <div className="text-4xl">💸</div>
-                <div className="flex-1">
-                  <h3 className="font-bold text-neutral-900 text-lg">Manage Withdrawals</h3>
-                  <p className="text-sm text-neutral-600">Approve/reject withdrawals</p>
-                </div>
-              </div>
-            </div>
-          </Link>
-        </div>
-
-        {/* Manual Cron Trigger - Testing Only */}
-        <div className="card bg-yellow-50 border-yellow-200">
-          <div className="flex items-start gap-3 mb-3">
-            <span className="text-2xl">⚙️</span>
-            <div className="flex-1">
-              <h3 className="text-base font-bold text-yellow-900 mb-1">
-                Manual Daily Income Distribution
-              </h3>
-              <p className="text-sm text-yellow-800 mb-3">
-                This manually triggers the daily income cron job. Normally runs automatically at 12:00 AM IST. 
-                Use this for testing or emergency income distribution.
-              </p>
-              <div className="bg-yellow-100 border border-yellow-300 rounded-lg p-3 mb-3">
-                <p className="text-xs text-yellow-900 font-medium mb-1">⚠️ What this does:</p>
-                <ul className="text-xs text-yellow-800 space-y-1">
-                  <li>• Adds daily income to all active plans</li>
-                  <li>• Marks expired plans (95+ days)</li>
-                  <li>• Skips blocked users</li>
-                  <li>• Creates income logs for tracking</li>
-                </ul>
-              </div>
-            </div>
-          </div>
-          <button
-            onClick={handleTriggerCron}
-            disabled={cronLoading}
-            className={`w-full px-4 py-3 rounded-lg font-medium transition-colors ${
-              cronLoading
-                ? 'bg-neutral-300 text-neutral-500 cursor-not-allowed'
-                : 'bg-primary text-white hover:bg-blue-700'
-            }`}
-          >
-            {cronLoading ? (
-              <span className="flex items-center justify-center gap-2">
-                <div className="inline-block animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
-                Running Daily Income Distribution...
-              </span>
-            ) : (
-              '▶️ Trigger Daily Income Cron Job'
-            )}
-          </button>
         </div>
       </div>
     </div>
