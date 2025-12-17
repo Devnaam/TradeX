@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { formatCurrency } from '@/lib/utils';
+import BottomNav from '@/components/BottomNav';
+
 
 interface Plan {
   id: number;
@@ -249,6 +251,7 @@ export default function PlansPage() {
           </div>
         )}
       </div>
+      <BottomNav />
     </div>
   );
 }

@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { formatCurrency } from '@/lib/utils';
+import BottomNav from '@/components/BottomNav';
+
 
 export default function WithdrawPage() {
   const router = useRouter();
@@ -263,6 +265,7 @@ export default function WithdrawPage() {
           </ul>
         </div>
       </div>
+      <BottomNav />
     </div>
   );
 }

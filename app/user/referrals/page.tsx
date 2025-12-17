@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { formatCurrency, formatDate } from '@/lib/utils';
+import BottomNav from '@/components/BottomNav';
+
 
 interface ReferralData {
   referralCode: string;
@@ -205,6 +207,7 @@ export default function UserReferralsPage() {
           )}
         </div>
       </div>
+      <BottomNav />
     </div>
   );
 }

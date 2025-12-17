@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { formatCurrency } from '@/lib/utils';
+import BottomNav from '@/components/BottomNav';
+
 
 interface DashboardData {
   user: {
@@ -98,6 +100,7 @@ export default function UserDashboard() {
   }
 
   return (
+    
     <div className="min-h-screen bg-neutral-50">
       {/* Header */}
       <div className="bg-primary text-white p-4">
@@ -236,6 +239,8 @@ export default function UserDashboard() {
           </div>
         </div>
       </div>
+      {/* Bottom Navigation - Mobile Only */}
+      <BottomNav />
     </div>
   );
 }

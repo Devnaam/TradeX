@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import BottomNav from '@/components/BottomNav';
+
 
 interface BankDetails {
   bankName: string;
@@ -349,6 +351,7 @@ export default function BankDetailsPage() {
           </div>
         </div>
       </div>
+      <BottomNav />
     </div>
   );
 }
