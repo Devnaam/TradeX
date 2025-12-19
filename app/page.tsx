@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import Image from 'next/image';
 
 export default function LandingPage() {
   const router = useRouter();
@@ -25,12 +26,17 @@ export default function LandingPage() {
       {/* Header/Navbar */}
       <nav className="bg-white border-b border-neutral-200 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
-              <span className="text-white text-xl font-bold">T</span>
-            </div>
-            <span className="text-xl font-bold text-primary">TradeX</span>
-          </div>
+          <Link href="/" className="flex items-center gap-2 cursor-pointer">
+            <Image
+              src="/Trade_logo-removebg-preview.png"
+              alt="TradeX Logo"
+              width={80}
+              height={80}
+              className="w-100 h-100 object-contain"
+              priority
+            />
+            {/* <span className="text-xl font-bold text-primary">TradeX</span> */}
+          </Link>
           <div className="flex gap-3">
             <Link href="/login">
               <button className="text-sm text-neutral-700 px-4 py-2 rounded-lg hover:bg-neutral-100 font-medium">
@@ -45,61 +51,155 @@ export default function LandingPage() {
       </nav>
 
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-blue-900 via-primary to-blue-800 text-white py-16 md:py-24">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
-            {/* Left Content */}
-            <div>
-              <div className="inline-block bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full mb-6">
-                <p className="text-sm font-medium">🚀 Trusted by 2,500+ Investors</p>
+      <section className="relative bg-white text-slate-900 py-12 sm:py-16 md:py-24 overflow-hidden">
+        {/* Subtle Money Background */}
+        <div className="absolute inset-0 opacity-[0.06] pointer-events-none">
+          <div className="absolute top-[8%] left-[5%] text-4xl sm:text-5xl text-emerald-600">💰</div>
+          <div className="absolute top-[15%] right-[8%] text-3xl sm:text-4xl text-emerald-600">💵</div>
+          <div className="absolute top-[35%] left-[12%] text-3xl sm:text-4xl text-emerald-600">💸</div>
+          <div className="absolute top-[55%] right-[15%] text-4xl sm:text-5xl text-emerald-600">💳</div>
+          <div className="absolute top-[68%] left-[20%] text-3xl sm:text-4xl text-emerald-600">📈</div>
+          <div className="absolute top-[25%] right-[3%] text-2xl sm:text-3xl text-emerald-600">💎</div>
+          <div className="absolute bottom-[8%] left-[8%] text-4xl sm:text-5xl text-emerald-600">🪙</div>
+          <div className="absolute bottom-[15%] right-[10%] text-3xl sm:text-4xl text-emerald-600">💰</div>
+        </div>
+
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-10 lg:gap-16 items-center">
+
+            {/* Left Content - Perfect! */}
+            <div className="text-center lg:text-left">
+              <div className="inline-block bg-emerald-600 text-white px-4 py-2 rounded-full mb-4 sm:mb-6">
+                <p className="text-xs sm:text-sm font-medium">🚀 Trusted by 2,500+ Investors</p>
               </div>
-              <h1 className="text-4xl md:text-5xl font-bold mb-6 leading-tight">
-                Grow Your Wealth with <span className="text-green-400">Smart Investments</span>
+
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6 leading-tight px-2 sm:px-0">
+                Grow Your Wealth with <span className="text-emerald-600">Smart Investments</span>
               </h1>
-              <p className="text-lg text-blue-100 mb-8 leading-relaxed">
+
+              <p className="text-sm sm:text-base lg:text-lg text-slate-600 mb-6 sm:mb-8 leading-relaxed max-w-xl mx-auto lg:mx-0 px-2 sm:px-0">
                 We invest your money in stock markets and cryptocurrencies, generating consistent
                 daily returns. Start earning passive income today with plans starting from just ₹5,000.
               </p>
-              <div className="flex flex-col sm:flex-row gap-4">
-                <Link href="/signup">
-                  <button className="bg-secondary hover:bg-green-600 text-white px-8 py-4 rounded-lg font-bold text-lg shadow-lg transition-all transform hover:scale-105">
+
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center lg:justify-start px-4 sm:px-0">
+                <Link href="/signup" className="w-full sm:w-auto">
+                  <button className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg font-bold text-base sm:text-lg shadow-lg transition-all transform hover:scale-105">
                     Start Investing Now →
                   </button>
                 </Link>
-                <a href="#how-it-works">
-                  <button className="bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white px-8 py-4 rounded-lg font-medium border border-white/30 transition-all">
+                <a href="#how-it-works" className="w-full sm:w-auto">
+                  <button className="w-full sm:w-auto bg-slate-900 hover:bg-slate-800 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg font-medium text-base sm:text-lg transition-all">
                     Learn How It Works
                   </button>
                 </a>
               </div>
             </div>
 
-            {/* Right - Stats Cards */}
-            <div className="grid grid-cols-2 gap-4">
-              <div className="bg-white/10 backdrop-blur-sm p-6 rounded-xl border border-white/20">
-                <div className="text-3xl mb-2">📈</div>
-                <p className="text-3xl font-bold text-green-400">₹{(stats.totalInvested / 10000000).toFixed(1)}Cr+</p>
-                <p className="text-sm text-blue-200">Total Invested</p>
+            {/* Right - Mobile First Animated Trading Chart */}
+            <div className="relative w-full h-[300px] sm:h-[400px] md:h-[450px] lg:h-[550px] xl:h-[600px]">
+
+              {/* Chart Container - Mobile First */}
+              <div className="absolute inset-0 bg-white border-2 sm:border-3 lg:border-4 border-slate-900 rounded-xl sm:rounded-2xl lg:rounded-3xl shadow-xl lg:shadow-2xl p-3 sm:p-4 md:p-6 lg:p-8 overflow-hidden">
+
+                {/* Animated Trading Chart */}
+                <svg viewBox="0 0 800 600" className="w-full h-full" preserveAspectRatio="xMidYMid meet">
+
+                  {/* Grid Background */}
+                  <defs>
+                    <pattern id="grid" width="80" height="60" patternUnits="userSpaceOnUse">
+                      <path d="M 80 0 L 0 0 0 60" fill="none" stroke="#E2E8F0" strokeWidth="1" />
+                    </pattern>
+                  </defs>
+                  <rect width="800" height="600" fill="url(#grid)" />
+
+                  {/* Horizontal Reference Lines */}
+                  <line x1="0" y1="120" x2="800" y2="120" stroke="#CBD5E1" strokeWidth="1.5" strokeDasharray="8,4" />
+                  <line x1="0" y1="240" x2="800" y2="240" stroke="#CBD5E1" strokeWidth="1.5" strokeDasharray="8,4" />
+                  <line x1="0" y1="360" x2="800" y2="360" stroke="#CBD5E1" strokeWidth="1.5" strokeDasharray="8,4" />
+                  <line x1="0" y1="480" x2="800" y2="480" stroke="#CBD5E1" strokeWidth="1.5" strokeDasharray="8,4" />
+
+                  {/* Animated Candlesticks */}
+                  <g className="animate-[fadeIn_1s_ease-out]">
+                    {/* Candle 1 - Green */}
+                    <line x1="80" y1="420" x2="80" y2="360" stroke="#059669" strokeWidth="2.5" className="animate-[grow_2s_ease-out]" />
+                    <rect x="67" y="380" width="26" height="40" fill="#059669" className="animate-[grow_2s_ease-out]" />
+
+                    {/* Candle 2 - Red */}
+                    <line x1="160" y1="340" x2="160" y2="400" stroke="#DC2626" strokeWidth="2.5" className="animate-[grow_2.2s_ease-out]" />
+                    <rect x="147" y="340" width="26" height="50" fill="#DC2626" className="animate-[grow_2.2s_ease-out]" />
+
+                    {/* Candle 3 - Green */}
+                    <line x1="240" y1="380" x2="240" y2="300" stroke="#059669" strokeWidth="2.5" className="animate-[grow_2.4s_ease-out]" />
+                    <rect x="227" y="320" width="26" height="60" fill="#059669" className="animate-[grow_2.4s_ease-out]" />
+
+                    {/* Candle 4 - Green */}
+                    <line x1="320" y1="340" x2="320" y2="260" stroke="#059669" strokeWidth="2.5" className="animate-[grow_2.6s_ease-out]" />
+                    <rect x="307" y="280" width="26" height="60" fill="#059669" className="animate-[grow_2.6s_ease-out]" />
+
+                    {/* Candle 5 - Red */}
+                    <line x1="400" y1="280" x2="400" y2="340" stroke="#DC2626" strokeWidth="2.5" className="animate-[grow_2.8s_ease-out]" />
+                    <rect x="387" y="280" width="26" height="50" fill="#DC2626" className="animate-[grow_2.8s_ease-out]" />
+
+                    {/* Candle 6 - Green */}
+                    <line x1="480" y1="320" x2="480" y2="220" stroke="#059669" strokeWidth="2.5" className="animate-[grow_3s_ease-out]" />
+                    <rect x="467" y="240" width="26" height="80" fill="#059669" className="animate-[grow_3s_ease-out]" />
+
+                    {/* Candle 7 - Green */}
+                    <line x1="560" y1="260" x2="560" y2="180" stroke="#059669" strokeWidth="2.5" className="animate-[grow_3.2s_ease-out]" />
+                    <rect x="547" y="200" width="26" height="60" fill="#059669" className="animate-[grow_3.2s_ease-out]" />
+
+                    {/* Candle 8 - Green */}
+                    <line x1="640" y1="220" x2="640" y2="140" stroke="#059669" strokeWidth="2.5" className="animate-[grow_3.4s_ease-out]" />
+                    <rect x="627" y="160" width="26" height="60" fill="#059669" className="animate-[grow_3.4s_ease-out]" />
+
+                    {/* Candle 9 - Red */}
+                    <line x1="720" y1="160" x2="720" y2="200" stroke="#DC2626" strokeWidth="2.5" className="animate-[grow_3.6s_ease-out]" />
+                    <rect x="707" y="160" width="26" height="40" fill="#DC2626" className="animate-[grow_3.6s_ease-out]" />
+                  </g>
+
+                  {/* Moving Trend Line */}
+                  <polyline
+                    points="40,450 120,400 200,350 280,300 360,280 440,250 520,220 600,190 680,160 760,180"
+                    fill="none"
+                    stroke="#3B82F6"
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    className="animate-[drawLine_4s_ease-out_forwards]"
+                    opacity="0.6"
+                  />
+
+                  {/* Glowing Data Points */}
+                  <circle cx="280" cy="300" r="6" fill="#059669" className="animate-[pulse_2s_ease-in-out_infinite]">
+                    <animate attributeName="r" values="6;10;6" dur="2s" repeatCount="indefinite" />
+                  </circle>
+                  <circle cx="520" cy="220" r="6" fill="#059669" className="animate-[pulse_2s_ease-in-out_infinite]">
+                    <animate attributeName="r" values="6;10;6" dur="2s" repeatCount="indefinite" begin="0.5s" />
+                  </circle>
+
+                  {/* Volume Bars at Bottom */}
+                  <g opacity="0.3" className="animate-[fadeIn_3s_ease-out]">
+                    <rect x="62" y="520" width="16" height="40" fill="#059669" />
+                    <rect x="142" y="540" width="16" height="20" fill="#DC2626" />
+                    <rect x="222" y="510" width="16" height="50" fill="#059669" />
+                    <rect x="302" y="500" width="16" height="60" fill="#059669" />
+                    <rect x="382" y="530" width="16" height="30" fill="#DC2626" />
+                    <rect x="462" y="495" width="16" height="65" fill="#059669" />
+                    <rect x="542" y="490" width="16" height="70" fill="#059669" />
+                    <rect x="622" y="485" width="16" height="75" fill="#059669" />
+                    <rect x="702" y="525" width="16" height="35" fill="#DC2626" />
+                  </g>
+
+                </svg>
+
               </div>
-              <div className="bg-white/10 backdrop-blur-sm p-6 rounded-xl border border-white/20">
-                <div className="text-3xl mb-2">👥</div>
-                <p className="text-3xl font-bold text-green-400">{stats.totalUsers.toLocaleString()}+</p>
-                <p className="text-sm text-blue-200">Active Investors</p>
-              </div>
-              <div className="bg-white/10 backdrop-blur-sm p-6 rounded-xl border border-white/20">
-                <div className="text-3xl mb-2">💰</div>
-                <p className="text-3xl font-bold text-green-400">₹{(stats.dailyReturns / 100000).toFixed(1)}L</p>
-                <p className="text-sm text-blue-200">Daily Returns</p>
-              </div>
-              <div className="bg-white/10 backdrop-blur-sm p-6 rounded-xl border border-white/20">
-                <div className="text-3xl mb-2">⚡</div>
-                <p className="text-3xl font-bold text-green-400">95 Days</p>
-                <p className="text-sm text-blue-200">ROI Period</p>
-              </div>
+
             </div>
+
           </div>
         </div>
       </section>
+
 
       {/* Trust Indicators */}
       <section className="py-6 bg-white border-b border-neutral-200">
@@ -396,7 +496,17 @@ export default function LandingPage() {
             <div>
               <div className="flex items-center gap-2 mb-4">
                 <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                  <span className="text-white font-bold">T</span>
+                  <Link href="/" className="flex items-center gap-2 cursor-pointer">
+                    <Image
+                      src="/Trade_logo-removebg-preview.png"
+                      alt="TradeX Logo"
+                      width={80}
+                      height={80}
+                      className="w-100 h-100 object-contain bg whitespace-normal"
+                      priority
+                    />
+                    {/* <span className="text-xl font-bold text-primary">TradeX</span> */}
+                  </Link>
                 </div>
                 <span className="text-white font-bold">TradeX</span>
               </div>

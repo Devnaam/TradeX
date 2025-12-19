@@ -51,18 +51,14 @@ export async function GET(request: NextRequest) {
 
         // Check if plan has expired
         const expiryDate = new Date(userPlan.expiryDate);
-        expiryDate.setHours(0, 0, 0, 0);
+if (today >= expiryDate) {
+  await prisma.userPlan.update({
+    where: { id: userPlan.id },
+    data: { status: 'expired' },
+  });
+}
 
-        if (today >= expiryDate) {
-          // Mark plan as expired
-          await prisma.userPlan.update({
-            where: { id: userPlan.id },
-            data: { status: 'expired' },
-          });
-          console.log(`⏰ Plan ${userPlan.id} marked as expired`);
-          expiredCount++;
-          continue;
-        }
+        
 
         // Add daily income using transaction
         await prisma.$transaction(async (tx) => {

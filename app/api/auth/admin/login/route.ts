@@ -1,10 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
 import { generateToken } from '@/lib/auth';
 import { ApiResponse } from '@/types';
-
-// Hardcoded admin credentials (as per PRD)
-const ADMIN_USERNAME = 'tradex_admin';
-const ADMIN_PASSWORD = 'TrX@2025#Secure';
 
 export async function POST(request: NextRequest) {
   try {
@@ -18,8 +15,20 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check credentials
-    if (username !== ADMIN_USERNAME || password !== ADMIN_PASSWORD) {
+    // ✅ NEW: Find admin in database
+    const admin = await prisma.admin.findUnique({
+      where: { username },
+    });
+
+    if (!admin) {
+      return NextResponse.json(
+        { success: false, error: 'Invalid credentials' } as ApiResponse,
+        { status: 401 }
+      );
+    }
+
+    // Check password (plain text comparison)
+    if (admin.password !== password) {
       return NextResponse.json(
         { success: false, error: 'Invalid credentials' } as ApiResponse,
         { status: 401 }
@@ -28,7 +37,7 @@ export async function POST(request: NextRequest) {
 
     // Generate JWT token for admin
     const token = generateToken({
-      userId: 0, // Admin doesn't have userId
+      userId: admin.id, // ✅ Now uses actual admin ID
       phone: 'admin',
       role: 'admin',
     });
@@ -38,7 +47,10 @@ export async function POST(request: NextRequest) {
       {
         success: true,
         message: 'Admin login successful',
-        data: { role: 'admin' },
+        data: { 
+          role: 'admin',
+          username: admin.username 
+        },
       } as ApiResponse,
       { status: 200 }
     );

@@ -164,11 +164,14 @@ export default function PlansPage() {
         </div>
 
         {/* Info Note */}
-        <div className="card bg-blue-50 border-blue-200">
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
           <p className="text-sm text-blue-800">
-            💡 <strong>Note:</strong> All plans have 95 days validity. Daily income credited at 12:00 AM IST. You can buy the same plan multiple times.
+            <strong>Note:</strong> All plans have <strong>365 days (1 year)</strong> validity.
+            Daily income credited at 12:00 AM IST.
+            You can buy the same plan multiple times.
           </p>
         </div>
+
 
         {/* Plans Grid */}
         {plans.length === 0 ? (
@@ -226,7 +229,7 @@ export default function PlansPage() {
                     <span className="text-neutral-700 font-semibold">Total Return:</span>
                     <span className="font-bold text-secondary text-lg">
                       {formatCurrency(
-                        plan.amount + calculateTotalIncome(plan.dailyIncome, plan.validityDays)
+                        calculateTotalIncome(plan.dailyIncome, plan.validityDays)
                       )}
                     </span>
                   </div>

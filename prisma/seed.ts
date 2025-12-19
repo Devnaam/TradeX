@@ -24,7 +24,7 @@ async function main() {
         planNumber: plan.planNumber,
         amount: plan.amount,
         dailyIncome: plan.dailyIncome,
-        validityDays: 95,
+        validityDays: 365,
         // REMOVED isActive
       },
     });

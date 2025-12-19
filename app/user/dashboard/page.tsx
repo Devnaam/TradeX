@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { formatCurrency } from '@/lib/utils';
 import BottomNav from '@/components/BottomNav';
+import Footer from '@/components/Footer';
 
 
 interface DashboardData {
@@ -240,6 +241,7 @@ export default function UserDashboard() {
         </div>
       </div>
       {/* Bottom Navigation - Mobile Only */}
+      <Footer />
       <BottomNav />
     </div>
   );

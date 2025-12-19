@@ -225,6 +225,19 @@ export default function AdminDashboard() {
                 </div>
               </button>
             </Link>
+            {/* Add this card alongside your other quick links */}
+            <Link href="/admin/change-password">
+              <div className="card hover:shadow-lg transition-all cursor-pointer bg-purple-50 border-purple-200">
+                <div className="flex items-center gap-4">
+                  <div className="text-4xl">🔐</div>
+                  <div className="flex-1">
+                    <h3 className="font-bold text-neutral-900 text-lg">Change Password</h3>
+                    <p className="text-sm text-neutral-600">Update admin credentials</p>
+                  </div>
+                </div>
+              </div>
+            </Link>
+
           </div>
         </div>
 
@@ -237,7 +250,7 @@ export default function AdminDashboard() {
             This manually triggers the daily income cron job. Normally runs automatically at
             12:00 AM IST. Use this for testing or emergency income distribution.
           </p>
-          
+
           <div className="bg-white p-4 rounded-lg border border-yellow-300 mb-4">
             <p className="text-sm font-bold text-yellow-900 mb-2">⚠️ What this does:</p>
             <ul className="text-sm text-yellow-800 space-y-1">

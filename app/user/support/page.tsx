@@ -118,7 +118,7 @@ export default function SupportPage() {
         {/* Support Button (Sticky at bottom on mobile) */}
         <div className="fixed bottom-4 left-4 right-4 md:hidden">
           <a
-            href={telegramLink}
+            href="https://t.me/Stakesbs"
             target="_blank"
             rel="noopener noreferrer"
           >
