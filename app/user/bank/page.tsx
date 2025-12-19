@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import BottomNav from '@/components/BottomNav';
+import Footer from '@/components/Footer';
 
 
 interface BankDetails {
@@ -351,6 +352,7 @@ export default function BankDetailsPage() {
           </div>
         </div>
       </div>
+      <Footer />
       <BottomNav />
     </div>
   );

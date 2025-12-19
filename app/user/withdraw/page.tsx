@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { formatCurrency } from '@/lib/utils';
 import BottomNav from '@/components/BottomNav';
+import Footer from '@/components/Footer';
 
 
 export default function WithdrawPage() {
@@ -265,6 +266,7 @@ export default function WithdrawPage() {
           </ul>
         </div>
       </div>
+      <Footer />
       <BottomNav />
     </div>
   );

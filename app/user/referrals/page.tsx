@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import BottomNav from '@/components/BottomNav';
+import Footer from '@/components/Footer';
 
 
 interface ReferralData {
@@ -207,6 +208,7 @@ export default function UserReferralsPage() {
           )}
         </div>
       </div>
+      <Footer />
       <BottomNav />
     </div>
   );

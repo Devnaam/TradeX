@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import BottomNav from '@/components/BottomNav';
+import Footer from '@/components/Footer';
 
 
 interface UserProfile {
@@ -198,6 +199,7 @@ export default function ProfilePage() {
           <p className="text-xs text-neutral-500">TradeX Platform v1.0</p>
         </div>
       </div>
+      <Footer />
       <BottomNav />
     </div>
   );
