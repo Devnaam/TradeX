@@ -4,10 +4,10 @@ import { ApiResponse } from '@/types';
 
 export async function GET(request: NextRequest) {
   try {
-    // Verify admin token (optional - you can add admin middleware later)
-    const adminToken = request.cookies.get('admin-token')?.value;
+    // ✅ FIX: Check for 'auth-token' cookie (not 'admin-token')
+    const authToken = request.cookies.get('auth-token')?.value;
     
-    if (!adminToken) {
+    if (!authToken) {
       return NextResponse.json(
         { success: false, error: 'Unauthorized' } as ApiResponse,
         { status: 401 }
@@ -99,7 +99,7 @@ export async function GET(request: NextRequest) {
       { status: 200 }
     );
   } catch (error: any) {
-    console.error('Admin dashboard stats error:', error);
+    console.error('❌ Admin dashboard stats error:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to fetch dashboard stats' } as ApiResponse,
       { status: 500 }

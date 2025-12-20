@@ -3,8 +3,19 @@ export function formatCurrency(amount: number | string): string {
   return `₹${num.toLocaleString('en-IN')}`;
 }
 
-export function formatDate(date: Date | string): string {
+export function formatDate(date: Date | string | null | undefined): string {
+  // Handle null/undefined
+  if (!date) {
+    return 'N/A';
+  }
+
   const d = typeof date === 'string' ? new Date(date) : date;
+  
+  // Check if date is valid
+  if (isNaN(d.getTime())) {
+    return 'Invalid Date';
+  }
+
   return d.toLocaleDateString('en-IN', {
     day: '2-digit',
     month: '2-digit',
@@ -12,8 +23,19 @@ export function formatDate(date: Date | string): string {
   });
 }
 
-export function formatDateTime(date: Date | string): string {
+export function formatDateTime(date: Date | string | null | undefined): string {
+  // Handle null/undefined
+  if (!date) {
+    return 'N/A';
+  }
+
   const d = typeof date === 'string' ? new Date(date) : date;
+  
+  // Check if date is valid
+  if (isNaN(d.getTime())) {
+    return 'Invalid Date';
+  }
+
   return d.toLocaleString('en-IN', {
     day: '2-digit',
     month: '2-digit',

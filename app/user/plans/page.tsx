@@ -109,7 +109,7 @@ export default function PlansPage() {
         // Refresh balance
         fetchWallet();
         // Redirect to My Investment
-        router.push('/user/investment');
+        router.push('/user/investments');
       } else {
         alert(data.error || 'Failed to activate plan');
       }

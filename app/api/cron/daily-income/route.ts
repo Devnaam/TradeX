@@ -1,19 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
-export async function GET(request: NextRequest) {
+// Shared function for processing daily income
+async function processDailyIncome(request: NextRequest) {
   try {
-    // Verify cron secret for security (optional but recommended)
-    const authHeader = request.headers.get('authorization');
-    if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-      return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
-
     console.log('🕐 Daily Income Cron Job Started:', new Date().toISOString());
-
+    
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
@@ -51,14 +43,29 @@ export async function GET(request: NextRequest) {
 
         // Check if plan has expired
         const expiryDate = new Date(userPlan.expiryDate);
-if (today >= expiryDate) {
-  await prisma.userPlan.update({
-    where: { id: userPlan.id },
-    data: { status: 'expired' },
-  });
-}
+        if (today >= expiryDate) {
+          await prisma.userPlan.update({
+            where: { id: userPlan.id },
+            data: { status: 'expired' },
+          });
+          expiredCount++;
+          console.log(`⏰ Plan ${userPlan.id} expired`);
+          continue;
+        }
 
-        
+        // Check if income already added today (prevent duplicate)
+        const existingLog = await prisma.dailyIncomeLog.findFirst({
+          where: {
+            userPlanId: userPlan.id,
+            date: today,
+          },
+        });
+
+        if (existingLog) {
+          console.log(`⏭️ Skipping plan ${userPlan.id} - Income already added today`);
+          skippedCount++;
+          continue;
+        }
 
         // Add daily income using transaction
         await prisma.$transaction(async (tx) => {
@@ -124,4 +131,24 @@ if (today >= expiryDate) {
       { status: 500 }
     );
   }
+}
+
+// GET method for Vercel Cron (with auth)
+export async function GET(request: NextRequest) {
+  // Verify cron secret for security
+  const authHeader = request.headers.get('authorization');
+  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+    return NextResponse.json(
+      { success: false, error: 'Unauthorized' },
+      { status: 401 }
+    );
+  }
+
+  return processDailyIncome(request);
+}
+
+// POST method for manual trigger from admin dashboard (no auth required for admin panel)
+export async function POST(request: NextRequest) {
+  // Optional: Add admin role check here if needed
+  return processDailyIncome(request);
 }
