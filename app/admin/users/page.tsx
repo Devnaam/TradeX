@@ -7,6 +7,7 @@ import { formatCurrency, formatDate } from '@/lib/utils';
 
 interface User {
   id: number;
+  userId: string; // ✅ Add this
   name: string;
   phone: string;
   password: string;
@@ -187,7 +188,7 @@ export default function AdminUsersPage() {
                     >
                       {user.isBlocked ? '🔒 Blocked' : '✅ Active'}
                     </span>
-                    <p className="text-xs text-neutral-500 mt-2">ID: {user.id}</p>
+                    <p className="text-xs text-neutral-500 mt-2">ID: {user.userId}</p>
                   </div>
                 </div>
 

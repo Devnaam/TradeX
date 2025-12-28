@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { generateReferralCode, generateToken } from '@/lib/auth';
+import { generateReferralCode, generateToken, generateUserId } from '@/lib/auth'; // ✅ Add generateUserId
 import { ApiResponse } from '@/types';
 
 export async function POST(request: NextRequest) {
@@ -27,7 +27,6 @@ export async function POST(request: NextRequest) {
     const existingUser = await prisma.user.findUnique({
       where: { phone },
     });
-
     if (existingUser) {
       return NextResponse.json(
         { success: false, error: 'Phone number already registered' } as ApiResponse,
@@ -41,15 +40,25 @@ export async function POST(request: NextRequest) {
       const referrer = await prisma.user.findUnique({
         where: { referralCode },
       });
-
       if (!referrer) {
         return NextResponse.json(
           { success: false, error: 'Invalid referral code' } as ApiResponse,
           { status: 400 }
         );
       }
-
       referrerId = referrer.id;
+    }
+
+    // ✅ Generate unique user ID
+    let newUserId = generateUserId();
+    let userIdExists = await prisma.user.findFirst({
+      where: { userId: newUserId },
+    });
+    while (userIdExists) {
+      newUserId = generateUserId();
+      userIdExists = await prisma.user.findFirst({
+        where: { userId: newUserId },
+      });
     }
 
     // Generate unique referral code for new user
@@ -57,8 +66,6 @@ export async function POST(request: NextRequest) {
     let codeExists = await prisma.user.findUnique({
       where: { referralCode: newReferralCode },
     });
-
-    // Regenerate if code already exists
     while (codeExists) {
       newReferralCode = generateReferralCode();
       codeExists = await prisma.user.findUnique({
@@ -66,12 +73,13 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Create user (password stored as plain text as per PRD requirements)
+    // Create user
     const user = await prisma.user.create({
       data: {
+        userId: newUserId, // ✅ Add userId
         name,
         phone,
-        password, // Plain text as per PRD
+        password,
         referralCode: newReferralCode,
         referredById: referrerId,
       },
@@ -92,6 +100,7 @@ export async function POST(request: NextRequest) {
         data: {
           user: {
             id: user.id,
+            userId: user.userId, // ✅ Return userId
             name: user.name,
             phone: user.phone,
             referralCode: user.referralCode,

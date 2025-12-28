@@ -31,3 +31,13 @@ export function generateReferralCode(): string {
   }
   return code;
 }
+
+// ✅ NEW: Generate unique 8-character user ID
+export function generateUserId(): string {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // No confusing chars (0,O,1,I)
+  let result = 'TRX';
+  for (let i = 0; i < 5; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return result;
+}

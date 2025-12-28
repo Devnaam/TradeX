@@ -9,6 +9,7 @@ datasource db {
 
 model User {
   id              Int              @id @default(autoincrement())
+  userId          String?          @unique @map("user_id") @db.VarChar(8)  // ✅ Add @unique back
   name            String           @db.VarChar(100)
   phone           String           @unique @db.VarChar(10)
   password        String           @db.VarChar(255)

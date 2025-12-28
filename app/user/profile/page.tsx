@@ -9,6 +9,7 @@ import Footer from '@/components/Footer';
 interface UserProfile {
   id: number;
   name: string;
+  userId: string; // ✅ Add this
   phone: string;
   referralCode: string;
   createdAt: string;
@@ -85,7 +86,7 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-background pb-20">
-      
+
       {/* Header */}
       <div className="sticky top-0 z-50 bg-emerald-600 text-white shadow-lg">
         <div className="max-w-4xl mx-auto px-4 py-4">
@@ -109,7 +110,7 @@ export default function ProfilePage() {
       </div>
 
       <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
-        
+
         {/* Profile Header Card */}
         <div className="card !p-8 text-center border-2 border-neutral-200 shadow-lg">
           <div className="inline-flex items-center justify-center w-24 h-24 bg-emerald-600 text-white rounded-full text-4xl font-bold mb-4 shadow-lg">
@@ -146,7 +147,8 @@ export default function ProfilePage() {
                 </svg>
                 User ID
               </span>
-              <span className="text-sm font-bold text-foreground">#{profile.id}</span>
+              <span className="text-sm font-bold text-foreground">#{profile.userId}</span>
+
             </div>
             <div className="flex justify-between items-center py-3 border-b border-neutral-200">
               <span className="text-sm text-neutral-600 flex items-center gap-2">
@@ -293,7 +295,7 @@ export default function ProfilePage() {
           <p className="text-xs text-neutral-500">TradeX Platform v1.0</p>
         </div>
       </div>
-      
+
       <Footer />
       <BottomNav />
     </div>

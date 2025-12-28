@@ -5,7 +5,6 @@ import { ApiResponse } from '@/types';
 export async function GET(request: NextRequest) {
   try {
     const userId = request.headers.get('x-user-id');
-
     if (!userId) {
       return NextResponse.json(
         { success: false, error: 'User ID required' } as ApiResponse,
@@ -17,6 +16,7 @@ export async function GET(request: NextRequest) {
       where: { id: parseInt(userId) },
       select: {
         id: true,
+        userId: true, // ✅ Select userId
         name: true,
         phone: true,
         referralCode: true,
@@ -36,6 +36,7 @@ export async function GET(request: NextRequest) {
 
     const profile = {
       id: user.id,
+      userId: user.userId, // ✅ Return userId
       name: user.name,
       phone: user.phone,
       referralCode: user.referralCode,

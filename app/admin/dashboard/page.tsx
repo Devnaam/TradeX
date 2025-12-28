@@ -34,13 +34,27 @@ export default function AdminDashboard() {
   const fetchStats = async () => {
     try {
       const response = await fetch('/api/admin/dashboard');
+      
+      // ✅ FIX: Check if unauthorized
+      if (response.status === 401) {
+        console.log('❌ Unauthorized - Redirecting to login');
+        router.push('/admin');
+        return;
+      }
+
       const data = await response.json();
 
       if (data.success) {
         setStats(data.data.stats);
+      } else {
+        // If not successful, redirect to login
+        console.error('Failed to fetch stats:', data.error);
+        router.push('/admin');
       }
     } catch (error) {
       console.error('Failed to fetch stats:', error);
+      // On error, redirect to login
+      router.push('/admin');
     } finally {
       setLoading(false);
     }
@@ -58,14 +72,13 @@ export default function AdminDashboard() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-cron-secret': process.env.NEXT_PUBLIC_CRON_SECRET || 'tradex_cron_secret_2025_super_secure',
         },
       });
 
       const data = await response.json();
 
       if (data.success) {
-        alert(`✅ Daily income distributed!\n\n${data.message}`);
+        alert(`✅ Daily income distributed!\n\nProcessed: ${data.data.processed}\nExpired: ${data.data.expired}\nSkipped: ${data.data.skipped}\nTotal Income: ₹${data.data.totalIncomeAdded}`);
         fetchStats();
       } else {
         alert('❌ Error: ' + data.error);
@@ -80,32 +93,26 @@ export default function AdminDashboard() {
 
   const handleLogout = async () => {
     try {
-      // 1. Call logout API endpoint (if you have one)
-      await fetch('/api/auth/admin/logout', {
+      const response = await fetch('/api/auth/admin/logout', {
         method: 'POST',
-        credentials: 'include', // Important for cookie-based auth
+        credentials: 'include',
       });
+
+      const data = await response.json();
+
+      if (data.success) {
+        // Force redirect with full page reload
+        window.location.href = '/admin';
+      } else {
+        // Force redirect anyway
+        window.location.href = '/admin';
+      }
     } catch (error) {
-      console.error('Logout API error:', error);
+      console.error('Logout error:', error);
+      // Force redirect anyway
+      window.location.href = '/admin';
     }
-
-    // 2. Clear all possible storage locations
-    localStorage.removeItem('admin-token');
-    localStorage.removeItem('adminToken');
-    sessionStorage.clear();
-
-    // 3. Clear any cookies (client-side accessible ones)
-    document.cookie.split(";").forEach((c) => {
-      document.cookie = c
-        .replace(/^ +/, "")
-        .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
-    });
-
-    // 4. Force redirect with full page reload
-    window.location.href = '/admin';
-    // Alternative: router.push('/admin'); router.refresh();
   };
-
 
   if (loading) {
     return (
@@ -116,6 +123,11 @@ export default function AdminDashboard() {
         </div>
       </div>
     );
+  }
+
+  // ✅ NEW: If stats is still null after loading, don't render
+  if (!stats) {
+    return null; // Will redirect in useEffect
   }
 
   return (
@@ -180,10 +192,10 @@ export default function AdminDashboard() {
               </Link>
             </div>
             <h3 className="text-sm font-medium text-slate-600 mb-1">Total Users</h3>
-            <p className="text-4xl font-bold text-slate-900 mb-2">{stats?.totalUsers || 0}</p>
+            <p className="text-4xl font-bold text-slate-900 mb-2">{stats.totalUsers}</p>
             <div className="flex items-center gap-2 text-xs">
               <span className="px-2 py-1 bg-red-100 text-red-700 rounded-lg font-medium">
-                {stats?.blockedUsers || 0} blocked
+                {stats.blockedUsers} blocked
               </span>
             </div>
           </div>
@@ -206,7 +218,7 @@ export default function AdminDashboard() {
               </Link>
             </div>
             <h3 className="text-sm font-medium text-slate-600 mb-1">Pending Deposits</h3>
-            <p className="text-4xl font-bold text-slate-900 mb-2">{stats?.totalDeposits.pending || 0}</p>
+            <p className="text-4xl font-bold text-slate-900 mb-2">{stats.totalDeposits.pending}</p>
             <div className="flex items-center gap-2 text-xs">
               <span className="px-2 py-1 bg-amber-100 text-amber-700 rounded-lg font-medium">
                 Awaiting approval
@@ -232,7 +244,7 @@ export default function AdminDashboard() {
               </Link>
             </div>
             <h3 className="text-sm font-medium text-slate-600 mb-1">Pending Withdrawals</h3>
-            <p className="text-4xl font-bold text-slate-900 mb-2">{stats?.totalWithdrawals.pending || 0}</p>
+            <p className="text-4xl font-bold text-slate-900 mb-2">{stats.totalWithdrawals.pending}</p>
             <div className="flex items-center gap-2 text-xs">
               <span className="px-2 py-1 bg-amber-100 text-amber-700 rounded-lg font-medium">
                 Awaiting approval
@@ -254,9 +266,9 @@ export default function AdminDashboard() {
               </span>
             </div>
             <h3 className="text-sm font-medium text-slate-600 mb-1">Active Plans</h3>
-            <p className="text-4xl font-bold text-slate-900 mb-2">{stats?.activePlans || 0}</p>
+            <p className="text-4xl font-bold text-slate-900 mb-2">{stats.activePlans}</p>
             <div className="flex items-center gap-2 text-xs text-slate-500">
-              <span>of {stats?.totalPlans || 0} total plans</span>
+              <span>of {stats.totalPlans} total plans</span>
             </div>
           </div>
         </div>
@@ -383,7 +395,7 @@ export default function AdminDashboard() {
                 Manual Daily Income Trigger
               </h2>
               <p className="text-sm text-slate-600">
-                Manually trigger the daily income cron job. Normally runs automatically at 12:00 AM IST. Use this for testing or emergency income distribution.
+                This manually triggers the daily income cron job. Normally runs automatically at 12:00 AM IST. Use this for testing or emergency income distribution.
               </p>
             </div>
           </div>
@@ -393,7 +405,7 @@ export default function AdminDashboard() {
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
               </svg>
-              What this does:
+              ⚠️ What this does:
             </p>
             <ul className="text-sm text-slate-700 space-y-2">
               <li className="flex items-start gap-2">
@@ -406,7 +418,7 @@ export default function AdminDashboard() {
                 <svg className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                 </svg>
-                <span>Auto-expires plans that completed 95 days</span>
+                <span>Auto-expires plans that completed 365 days</span>
               </li>
               <li className="flex items-start gap-2">
                 <svg className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -467,7 +479,7 @@ export default function AdminDashboard() {
                   <div className="w-2 h-2 bg-amber-500 rounded-full"></div>
                   <span className="text-sm font-medium text-slate-700">Pending</span>
                 </div>
-                <span className="text-2xl font-bold text-amber-600">{stats?.totalDeposits.pending || 0}</span>
+                <span className="text-2xl font-bold text-amber-600">{stats.totalDeposits.pending}</span>
               </div>
 
               <div className="flex items-center justify-between p-4 bg-emerald-50 rounded-xl border border-emerald-200">
@@ -475,7 +487,7 @@ export default function AdminDashboard() {
                   <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
                   <span className="text-sm font-medium text-slate-700">Approved</span>
                 </div>
-                <span className="text-2xl font-bold text-emerald-600">{stats?.totalDeposits.approved || 0}</span>
+                <span className="text-2xl font-bold text-emerald-600">{stats.totalDeposits.approved}</span>
               </div>
 
               <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-200">
@@ -483,7 +495,7 @@ export default function AdminDashboard() {
                   <div className="w-2 h-2 bg-slate-400 rounded-full"></div>
                   <span className="text-sm font-medium text-slate-700">Rejected</span>
                 </div>
-                <span className="text-2xl font-bold text-slate-500">{stats?.totalDeposits.rejected || 0}</span>
+                <span className="text-2xl font-bold text-slate-500">{stats.totalDeposits.rejected}</span>
               </div>
             </div>
           </div>
@@ -505,7 +517,7 @@ export default function AdminDashboard() {
                   <div className="w-2 h-2 bg-amber-500 rounded-full"></div>
                   <span className="text-sm font-medium text-slate-700">Pending</span>
                 </div>
-                <span className="text-2xl font-bold text-amber-600">{stats?.totalWithdrawals.pending || 0}</span>
+                <span className="text-2xl font-bold text-amber-600">{stats.totalWithdrawals.pending}</span>
               </div>
 
               <div className="flex items-center justify-between p-4 bg-emerald-50 rounded-xl border border-emerald-200">
@@ -513,7 +525,7 @@ export default function AdminDashboard() {
                   <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
                   <span className="text-sm font-medium text-slate-700">Approved</span>
                 </div>
-                <span className="text-2xl font-bold text-emerald-600">{stats?.totalWithdrawals.approved || 0}</span>
+                <span className="text-2xl font-bold text-emerald-600">{stats.totalWithdrawals.approved}</span>
               </div>
 
               <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-200">
@@ -521,7 +533,7 @@ export default function AdminDashboard() {
                   <div className="w-2 h-2 bg-slate-400 rounded-full"></div>
                   <span className="text-sm font-medium text-slate-700">Rejected</span>
                 </div>
-                <span className="text-2xl font-bold text-slate-500">{stats?.totalWithdrawals.rejected || 0}</span>
+                <span className="text-2xl font-bold text-slate-500">{stats.totalWithdrawals.rejected}</span>
               </div>
             </div>
           </div>

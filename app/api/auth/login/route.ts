@@ -19,7 +19,6 @@ export async function POST(request: NextRequest) {
     const user = await prisma.user.findUnique({
       where: { phone },
     });
-
     if (!user) {
       return NextResponse.json(
         { success: false, error: 'Invalid phone number or password' } as ApiResponse,
@@ -27,7 +26,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check password (plain text comparison as per PRD)
+    // Check password
     if (user.password !== password) {
       return NextResponse.json(
         { success: false, error: 'Invalid phone number or password' } as ApiResponse,
@@ -58,24 +57,25 @@ export async function POST(request: NextRequest) {
         data: {
           user: {
             id: user.id,
+            userId: user.userId, // ✅ Return userId
             name: user.name,
             phone: user.phone,
             referralCode: user.referralCode,
           },
-          token, // Send token in response too
+          token,
         },
       } as ApiResponse,
       { status: 200 }
     );
 
-    // Set HTTP-only cookie with explicit options
+    // Set HTTP-only cookie
     response.cookies.set({
       name: 'auth-token',
       value: token,
       httpOnly: true,
-      secure: false, // Set to false for localhost
+      secure: false,
       sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 7, // 7 days
+      maxAge: 60 * 60 * 24 * 7,
       path: '/',
     });
 
