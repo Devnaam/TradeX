@@ -19,6 +19,7 @@ export default function WithdrawHistoryPage() {
   const [withdrawals, setWithdrawals] = useState<Withdrawal[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
+  const [shareLoading, setShareLoading] = useState<number | null>(null);
 
   useEffect(() => {
     fetchWithdrawals();
@@ -48,6 +49,55 @@ export default function WithdrawHistoryPage() {
       console.error('Failed to fetch withdrawals:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleShare = async (withdrawal: Withdrawal) => {
+    setShareLoading(withdrawal.id);
+
+    const shareText = `🎉 Successfully withdrawn ${formatCurrency(withdrawal.amount)} from TradeX!\n\n💰 Amount: ${formatCurrency(withdrawal.amount)}\n✅ Status: Approved\n📅 Date: ${formatDateTime(withdrawal.createdAt)}\n\n🚀 Start your investment journey with TradeX today!`;
+
+    const shareUrl = window.location.origin;
+
+    try {
+      // Check if Web Share API is supported (mostly mobile devices)
+      if (navigator.share) {
+        await navigator.share({
+          title: 'TradeX Withdrawal Success',
+          text: shareText,
+          url: shareUrl,
+        });
+        console.log('Shared successfully');
+      } else {
+        // Fallback: Copy to clipboard
+        await navigator.clipboard.writeText(`${shareText}\n\n${shareUrl}`);
+        alert('✅ Share message copied to clipboard! You can now paste it anywhere.');
+      }
+    } catch (error) {
+      console.error('Error sharing:', error);
+      // Final fallback: Show share dialog
+      showShareDialog(withdrawal);
+    } finally {
+      setShareLoading(null);
+    }
+  };
+
+  const showShareDialog = (withdrawal: Withdrawal) => {
+    const shareText = `🎉 Successfully withdrawn ${formatCurrency(withdrawal.amount)} from TradeX!\n\n💰 Amount: ${formatCurrency(withdrawal.amount)}\n✅ Status: Approved\n📅 Date: ${formatDateTime(withdrawal.createdAt)}\n\n🚀 Start your investment journey with TradeX today!`;
+    const shareUrl = window.location.origin;
+
+    // Open share options in new window
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(shareText + '\n' + shareUrl)}`;
+    const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`;
+    const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}&quote=${encodeURIComponent(shareText)}`;
+
+    // Create a simple dialog
+    const choice = confirm('Share on WhatsApp? (Cancel to copy link)');
+    if (choice) {
+      window.open(whatsappUrl, '_blank');
+    } else {
+      navigator.clipboard.writeText(`${shareText}\n\n${shareUrl}`);
+      alert('✅ Copied to clipboard!');
     }
   };
 
@@ -95,7 +145,7 @@ export default function WithdrawHistoryPage() {
 
   return (
     <div className="min-h-screen bg-background pb-20">
-      
+
       {/* Header */}
       <div className="sticky top-0 z-50 bg-emerald-600 text-white shadow-lg">
         <div className="max-w-4xl mx-auto px-4 py-4">
@@ -119,7 +169,7 @@ export default function WithdrawHistoryPage() {
       </div>
 
       <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
-        
+
         {/* Filter Tabs */}
         <div className="card !p-3">
           <div className="grid grid-cols-4 gap-2">
@@ -127,11 +177,10 @@ export default function WithdrawHistoryPage() {
               <button
                 key={tab}
                 onClick={() => setFilter(tab)}
-                className={`py-2.5 px-2 rounded-lg text-xs md:text-sm font-bold transition-all capitalize ${
-                  filter === tab
+                className={`py-2.5 px-2 rounded-lg text-xs md:text-sm font-bold transition-all capitalize ${filter === tab
                     ? 'bg-emerald-600 text-white shadow-md'
                     : 'bg-background text-foreground hover:bg-neutral-200'
-                }`}
+                  }`}
               >
                 {tab}
               </button>
@@ -157,7 +206,7 @@ export default function WithdrawHistoryPage() {
           <div className="space-y-4">
             {filteredWithdrawals.map((withdrawal) => (
               <div key={withdrawal.id} className="card !p-5 border-2 border-neutral-200 hover:border-emerald-600/30 transition-all">
-                
+
                 {/* Header */}
                 <div className="flex justify-between items-start mb-4">
                   <div>
@@ -229,9 +278,9 @@ export default function WithdrawHistoryPage() {
                     </div>
                   )}
 
-                  {/* Approved Status Info */}
+                  {/* Approved Status Info with Share Button */}
                   {withdrawal.status === 'approved' && (
-                    <div className="pt-3 border-t border-neutral-200">
+                    <div className="pt-3 border-t border-neutral-200 space-y-3">
                       <div className="bg-green-50 border-2 border-green-200 p-3 rounded-lg">
                         <div className="flex items-start gap-3">
                           <svg className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
@@ -245,6 +294,34 @@ export default function WithdrawHistoryPage() {
                           </div>
                         </div>
                       </div>
+
+                      {/* Share Button */}
+                      <button
+                        onClick={() => handleShare(withdrawal)}
+                        disabled={shareLoading === withdrawal.id}
+                        className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold py-3 px-4 rounded-xl transition-all shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                      >
+                        {shareLoading === withdrawal.id ? (
+                          <>
+                            <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            <span>Sharing...</span>
+                          </>
+                        ) : (
+                          <>
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                            </svg>
+                            <span>Share Your Success</span>
+                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                              <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
+                              <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
+                            </svg>
+                          </>
+                        )}
+                      </button>
                     </div>
                   )}
 

@@ -1,14 +1,17 @@
 'use client';
 
+
 import { useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 
+
 // Component that uses useSearchParams - wrapped in Suspense
 function SignupForm() {
   const searchParams = useSearchParams();
   const refCode = searchParams.get('ref') || '';
+
 
   const [formData, setFormData] = useState({
     name: '',
@@ -19,11 +22,14 @@ function SignupForm() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
+
 
     try {
       const response = await fetch('/api/auth/register', {
@@ -32,7 +38,9 @@ function SignupForm() {
         body: JSON.stringify(formData),
       });
 
+
       const data = await response.json();
+
 
       if (data.success && data.data?.user) {
         // Get token from response (we need to update API to return it)
@@ -41,9 +49,9 @@ function SignupForm() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ phone: formData.phone, password: formData.password }),
         });
-        
+
         const loginData = await loginResponse.json();
-        
+
         if (loginData.success && loginData.data?.token) {
           localStorage.setItem('auth-token', loginData.data.token);
           localStorage.setItem('user', JSON.stringify(loginData.data.user));
@@ -60,9 +68,11 @@ function SignupForm() {
     }
   };
 
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-neutral-50 px-3 py-8 sm:px-4 sm:py-12">
       <div className="w-full max-w-sm sm:max-w-md">
+
 
         {/* Logo & Header */}
         <div className="text-center mb-6 sm:mb-8">
@@ -84,9 +94,11 @@ function SignupForm() {
           </p>
         </div>
 
+
         {/* Form Card */}
         <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg sm:shadow-xl border border-slate-200 p-4 sm:p-6 md:p-8">
           <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
+
 
             {/* Error Message */}
             {error && (
@@ -97,6 +109,7 @@ function SignupForm() {
                 <span className="text-xs sm:text-sm leading-tight">{error}</span>
               </div>
             )}
+
 
             {/* Full Name */}
             <div>
@@ -121,6 +134,7 @@ function SignupForm() {
               </div>
             </div>
 
+
             {/* Phone Number */}
             <div>
               <label className="block text-xs sm:text-sm font-semibold text-slate-700 mb-1.5 sm:mb-2">
@@ -143,6 +157,7 @@ function SignupForm() {
                 />
               </div>
             </div>
+
 
             {/* Password */}
             <div>
@@ -183,6 +198,7 @@ function SignupForm() {
               </div>
             </div>
 
+
             {/* Referral Code */}
             <div>
               <label className="block text-xs sm:text-sm font-semibold text-slate-700 mb-1.5 sm:mb-2">
@@ -205,11 +221,39 @@ function SignupForm() {
               </div>
             </div>
 
+
+            {/* Privacy Policy & Terms Checkbox */}
+            <div className="pt-1">
+              <label className="flex items-start gap-2.5 sm:gap-3 cursor-pointer group">
+                <div className="relative flex items-center justify-center mt-0.5">
+                  <input
+                    type="checkbox"
+                    checked={acceptedTerms}
+                    onChange={(e) => setAcceptedTerms(e.target.checked)}
+                    required
+                    className="w-4 h-4 sm:w-5 sm:h-5 rounded border-2 border-slate-300 text-emerald-600 focus:ring-4 focus:ring-emerald-50 focus:border-emerald-500 cursor-pointer transition-all"
+                  />
+                </div>
+                <span className="text-xs sm:text-sm text-slate-600 leading-relaxed select-none">
+                  I have read and agree to the{' '}
+                  <Link
+                    href="/policy"
+                    target="_blank"
+                    className="text-emerald-600 hover:text-emerald-700 font-semibold underline decoration-emerald-600/30 hover:decoration-emerald-700 underline-offset-2 transition-colors"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    Privacy Policy and Terms & Conditions
+                  </Link>
+                </span>
+              </label>
+            </div>
+
+
             {/* Submit Button */}
             <button
               type="submit"
               className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 sm:py-3.5 text-sm sm:text-base rounded-lg sm:rounded-xl transition-all transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none shadow-lg shadow-emerald-600/30"
-              disabled={loading}
+              disabled={loading || !acceptedTerms}
             >
               {loading ? (
                 <span className="flex items-center justify-center gap-2">
@@ -225,6 +269,7 @@ function SignupForm() {
             </button>
           </form>
 
+
           {/* Divider */}
           <div className="relative my-5 sm:my-6">
             <div className="absolute inset-0 flex items-center">
@@ -234,6 +279,7 @@ function SignupForm() {
               <span className="px-3 sm:px-4 bg-white text-slate-500">Already have an account?</span>
             </div>
           </div>
+
 
           {/* Login Link */}
           <div className="text-center">
@@ -246,6 +292,7 @@ function SignupForm() {
           </div>
         </div>
 
+
         {/* Back to Home */}
         <div className="text-center mt-4 sm:mt-6">
           <Link href="/" className="text-xs sm:text-sm text-slate-600 hover:text-emerald-600 transition-colors inline-flex items-center gap-1">
@@ -256,10 +303,12 @@ function SignupForm() {
           </Link>
         </div>
 
+
       </div>
     </div>
   );
 }
+
 
 // Main export with Suspense wrapper
 export default function SignupPage() {
