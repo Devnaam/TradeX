@@ -34,7 +34,7 @@ export default function AdminDashboard() {
   const fetchStats = async () => {
     try {
       const response = await fetch('/api/admin/dashboard');
-      
+
       // ✅ FIX: Check if unauthorized
       if (response.status === 401) {
         console.log('❌ Unauthorized - Redirecting to login');
@@ -274,6 +274,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* Quick Actions */}
+        {/* Quick Actions */}
         <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-6 md:p-8 border border-slate-200/50 shadow-lg">
           <h2 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
             <svg className="w-6 h-6 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -341,6 +342,26 @@ export default function AdminDashboard() {
               </div>
             </Link>
 
+            {/* NEW: Messages Card */}
+            <Link href="/admin/messages">
+              <div className="group bg-gradient-to-br from-purple-50 to-purple-100/50 hover:from-purple-100 hover:to-purple-200/50 border border-purple-200 rounded-xl p-5 transition-all hover:shadow-lg cursor-pointer">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-purple-500 rounded-xl flex items-center justify-center shadow-lg shadow-purple-500/30 group-hover:scale-110 transition-transform">
+                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                    </svg>
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-bold text-slate-900 mb-0.5">Messages</p>
+                    <p className="text-xs text-slate-600">User support messages</p>
+                  </div>
+                  <svg className="w-5 h-5 text-purple-500 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                  </svg>
+                </div>
+              </div>
+            </Link>
+
             <Link href="/admin/settings">
               <div className="group bg-gradient-to-br from-indigo-50 to-indigo-100/50 hover:from-indigo-100 hover:to-indigo-200/50 border border-indigo-200 rounded-xl p-5 transition-all hover:shadow-lg cursor-pointer">
                 <div className="flex items-center gap-4">
@@ -381,6 +402,7 @@ export default function AdminDashboard() {
             </Link>
           </div>
         </div>
+
 
         {/* Manual Cron Trigger */}
         <div className="bg-gradient-to-br from-amber-50 to-orange-50 backdrop-blur-xl rounded-2xl p-6 md:p-8 border border-amber-200 shadow-lg">

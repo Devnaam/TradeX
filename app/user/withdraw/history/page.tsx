@@ -52,52 +52,64 @@ export default function WithdrawHistoryPage() {
     }
   };
 
-  const handleShare = async (withdrawal: Withdrawal) => {
-    setShareLoading(withdrawal.id);
+  // NEW: Generate Verified Link Function
+  const handleGenerateVerifiedLink = async (withdrawalId: number, amount: number) => {
+    setShareLoading(withdrawalId);
 
-    const shareText = `🎉 Successfully withdrawn ${formatCurrency(withdrawal.amount)} from TradeX!\n\n💰 Amount: ${formatCurrency(withdrawal.amount)}\n✅ Status: Approved\n📅 Date: ${formatDateTime(withdrawal.createdAt)}\n\n🚀 Start your investment journey with TradeX today!`;
+    const userData = localStorage.getItem('user');
+    if (!userData) {
+      alert('Please login first');
+      setShareLoading(null);
+      return;
+    }
 
-    const shareUrl = window.location.origin;
+    const user = JSON.parse(userData);
 
     try {
-      // Check if Web Share API is supported (mostly mobile devices)
-      if (navigator.share) {
-        await navigator.share({
-          title: 'TradeX Withdrawal Success',
-          text: shareText,
-          url: shareUrl,
-        });
-        console.log('Shared successfully');
+      const response = await fetch('/api/user/withdraw/generate-verified-link', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-user-id': user.id.toString(),
+        },
+        body: JSON.stringify({ withdrawalId }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        const verifiedLink = data.data.verifiedLink;
+        const shareText = `✅ Check out my verified withdrawal from TradeX!\n\n💰 Amount: ${formatCurrency(amount)}\n🔗 Verified Link: ${verifiedLink}\n\n⚡ This link is verified by TradeX and expires in 24 hours.\n\n🚀 Start your investment journey with TradeX!`;
+
+        // Try to share using Web Share API
+        if (navigator.share) {
+          try {
+            await navigator.share({
+              title: 'TradeX Verified Withdrawal',
+              text: shareText,
+              url: verifiedLink,
+            });
+          } catch (shareError: any) {
+            // User cancelled share or error occurred
+            if (shareError.name !== 'AbortError') {
+              // Fallback to clipboard
+              await navigator.clipboard.writeText(shareText);
+              alert(`✅ Verified link copied to clipboard!\n\nShare this link to prove your withdrawal:\n\n${verifiedLink}\n\n⏰ Link expires in 24 hours`);
+            }
+          }
+        } else {
+          // Fallback: Copy to clipboard
+          await navigator.clipboard.writeText(shareText);
+          alert(`✅ Verified link generated and copied!\n\nYou can now share this link anywhere:\n\n${verifiedLink}\n\n⏰ Valid for 24 hours`);
+        }
       } else {
-        // Fallback: Copy to clipboard
-        await navigator.clipboard.writeText(`${shareText}\n\n${shareUrl}`);
-        alert('✅ Share message copied to clipboard! You can now paste it anywhere.');
+        alert(`❌ ${data.error || 'Failed to generate verified link'}`);
       }
     } catch (error) {
-      console.error('Error sharing:', error);
-      // Final fallback: Show share dialog
-      showShareDialog(withdrawal);
+      console.error('Error:', error);
+      alert('❌ Failed to generate verified link. Please try again.');
     } finally {
       setShareLoading(null);
-    }
-  };
-
-  const showShareDialog = (withdrawal: Withdrawal) => {
-    const shareText = `🎉 Successfully withdrawn ${formatCurrency(withdrawal.amount)} from TradeX!\n\n💰 Amount: ${formatCurrency(withdrawal.amount)}\n✅ Status: Approved\n📅 Date: ${formatDateTime(withdrawal.createdAt)}\n\n🚀 Start your investment journey with TradeX today!`;
-    const shareUrl = window.location.origin;
-
-    // Open share options in new window
-    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(shareText + '\n' + shareUrl)}`;
-    const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`;
-    const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}&quote=${encodeURIComponent(shareText)}`;
-
-    // Create a simple dialog
-    const choice = confirm('Share on WhatsApp? (Cancel to copy link)');
-    if (choice) {
-      window.open(whatsappUrl, '_blank');
-    } else {
-      navigator.clipboard.writeText(`${shareText}\n\n${shareUrl}`);
-      alert('✅ Copied to clipboard!');
     }
   };
 
@@ -145,7 +157,6 @@ export default function WithdrawHistoryPage() {
 
   return (
     <div className="min-h-screen bg-background pb-20">
-
       {/* Header */}
       <div className="sticky top-0 z-50 bg-emerald-600 text-white shadow-lg">
         <div className="max-w-4xl mx-auto px-4 py-4">
@@ -169,7 +180,6 @@ export default function WithdrawHistoryPage() {
       </div>
 
       <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
-
         {/* Filter Tabs */}
         <div className="card !p-3">
           <div className="grid grid-cols-4 gap-2">
@@ -177,10 +187,11 @@ export default function WithdrawHistoryPage() {
               <button
                 key={tab}
                 onClick={() => setFilter(tab)}
-                className={`py-2.5 px-2 rounded-lg text-xs md:text-sm font-bold transition-all capitalize ${filter === tab
+                className={`py-2.5 px-2 rounded-lg text-xs md:text-sm font-bold transition-all capitalize ${
+                  filter === tab
                     ? 'bg-emerald-600 text-white shadow-md'
                     : 'bg-background text-foreground hover:bg-neutral-200'
-                  }`}
+                }`}
               >
                 {tab}
               </button>
@@ -205,8 +216,10 @@ export default function WithdrawHistoryPage() {
         ) : (
           <div className="space-y-4">
             {filteredWithdrawals.map((withdrawal) => (
-              <div key={withdrawal.id} className="card !p-5 border-2 border-neutral-200 hover:border-emerald-600/30 transition-all">
-
+              <div
+                key={withdrawal.id}
+                className="card !p-5 border-2 border-neutral-200 hover:border-emerald-600/30 transition-all"
+              >
                 {/* Header */}
                 <div className="flex justify-between items-start mb-4">
                   <div>
@@ -278,7 +291,7 @@ export default function WithdrawHistoryPage() {
                     </div>
                   )}
 
-                  {/* Approved Status Info with Share Button */}
+                  {/* Approved Status Info with Generate Verified Link Button */}
                   {withdrawal.status === 'approved' && (
                     <div className="pt-3 border-t border-neutral-200 space-y-3">
                       <div className="bg-green-50 border-2 border-green-200 p-3 rounded-lg">
@@ -295,11 +308,11 @@ export default function WithdrawHistoryPage() {
                         </div>
                       </div>
 
-                      {/* Share Button */}
+                      {/* Generate Verified Link Button - NEW */}
                       <button
-                        onClick={() => handleShare(withdrawal)}
+                        onClick={() => handleGenerateVerifiedLink(withdrawal.id, withdrawal.amount)}
                         disabled={shareLoading === withdrawal.id}
-                        className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold py-3 px-4 rounded-xl transition-all shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                        className="w-full bg-gradient-to-r from-blue-600 to-emerald-600 hover:from-blue-700 hover:to-emerald-700 text-white font-bold py-3 px-4 rounded-xl transition-all shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                       >
                         {shareLoading === withdrawal.id ? (
                           <>
@@ -307,17 +320,16 @@ export default function WithdrawHistoryPage() {
                               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                             </svg>
-                            <span>Sharing...</span>
+                            <span>Generating...</span>
                           </>
                         ) : (
                           <>
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                             </svg>
-                            <span>Share Your Success</span>
-                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                              <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
-                              <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
+                            <span>Generate Verified Link</span>
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
                             </svg>
                           </>
                         )}
