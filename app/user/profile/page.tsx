@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import BottomNav from '@/components/BottomNav';
+
 import Footer from '@/components/Footer';
 
 interface UserProfile {
@@ -297,7 +297,7 @@ export default function ProfilePage() {
       </div>
 
       <Footer />
-      <BottomNav />
+      
     </div>
   );
 }

@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import BottomNav from '@/components/BottomNav';
 
 export default function DepositPage() {
   const router = useRouter();
@@ -260,7 +259,7 @@ export default function DepositPage() {
         </div>
       </div>
       
-      <BottomNav />
+      
     </div>
   );
 }

@@ -170,34 +170,8 @@ export default function AdminLoginPage() {
         </div>
 
         {/* Credentials Info */}
-        <div className="bg-blue-50 border-2 border-blue-200 rounded-xl sm:rounded-2xl p-4 sm:p-5 mt-4 sm:mt-6">
-          <div className="flex items-start gap-2 sm:gap-3 mb-3">
-            <div className="w-5 h-5 sm:w-6 sm:h-6 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-              <svg className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
-              </svg>
-            </div>
-            <div>
-              <p className="text-xs sm:text-sm text-blue-900 font-semibold mb-1">
-                Admin Access Only
-              </p>
-              <p className="text-xs text-blue-700 mb-3">
-                This area is restricted to authorized administrators only.
-              </p>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg p-3 sm:p-4 space-y-2">
-            <div className="flex items-center justify-between text-xs sm:text-sm">
-              <span className="text-slate-600 font-medium">Username:</span>
-              <code className="bg-slate-100 px-2 py-1 rounded text-slate-900 font-mono">tradex_admin</code>
-            </div>
-            <div className="flex items-center justify-between text-xs sm:text-sm">
-              <span className="text-slate-600 font-medium">Password:</span>
-              <code className="bg-slate-100 px-2 py-1 rounded text-slate-900 font-mono">TrX@2025#Secure</code>
-            </div>
-          </div>
-        </div>
+        
+        
 
         {/* Back to Home */}
         <div className="text-center mt-4 sm:mt-6">
