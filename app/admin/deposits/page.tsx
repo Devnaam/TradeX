@@ -32,6 +32,9 @@ export default function AdminDepositsPage() {
     remark: string;
   } | null>(null);
 
+  // ✅ NEW: Screenshot modal state
+  const [screenshotModal, setScreenshotModal] = useState<string | null>(null);
+
   useEffect(() => {
     fetchDeposits();
   }, []);
@@ -180,7 +183,11 @@ export default function AdminDepositsPage() {
                     </p>
                   </div>
                   <div className="text-right">
-                    <span className={`text-xs px-3 py-1 rounded-full font-medium border ${getStatusColor(deposit.status)}`}>
+                    <span
+                      className={`text-xs px-3 py-1 rounded-full font-medium border ${getStatusColor(
+                        deposit.status
+                      )}`}
+                    >
                       {deposit.status.toUpperCase()}
                     </span>
                     <p className="text-xs text-neutral-500 mt-2">ID: {deposit.id}</p>
@@ -199,16 +206,16 @@ export default function AdminDepositsPage() {
                     <p className="text-xs text-neutral-600">UTR Number</p>
                     <p className="text-sm font-bold text-neutral-900 mt-1">{deposit.utrNumber}</p>
                   </div>
+
+                  {/* ✅ UPDATED: Screenshot button opens modal instead of new tab */}
                   <div className="bg-neutral-50 p-3 rounded-lg border border-neutral-200 col-span-2">
                     <p className="text-xs text-neutral-600 mb-2">Payment Screenshot</p>
-                    <a
-                      href={deposit.screenshotUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                    <button
+                      onClick={() => setScreenshotModal(deposit.screenshotUrl)}
                       className="text-sm text-primary hover:underline font-medium"
                     >
                       📷 View Screenshot →
-                    </a>
+                    </button>
                   </div>
                 </div>
 
@@ -279,6 +286,52 @@ export default function AdminDepositsPage() {
               >
                 Confirm
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ✅ NEW: Screenshot Viewer Modal */}
+      {screenshotModal && (
+        <div
+          className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50"
+          onClick={() => setScreenshotModal(null)}
+        >
+          <div
+            className="relative max-w-2xl w-full bg-white rounded-lg overflow-hidden shadow-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="flex justify-between items-center px-4 py-3 border-b border-neutral-200">
+              <p className="text-sm font-semibold text-neutral-800">📷 Payment Screenshot</p>
+              <div className="flex items-center gap-3">
+                <a
+                  href={screenshotModal}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs text-primary hover:underline"
+                >
+                  Open in new tab ↗
+                </a>
+                <button
+                  onClick={() => setScreenshotModal(null)}
+                  className="text-neutral-500 hover:text-neutral-800 font-bold text-xl leading-none"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+
+            {/* Image Preview */}
+            <div className="p-4 flex items-center justify-center bg-neutral-50 min-h-64">
+              <img
+                src={screenshotModal}
+                alt="Payment Screenshot"
+                className="max-w-full max-h-[70vh] object-contain rounded"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).alt = '⚠️ Image failed to load';
+                }}
+              />
             </div>
           </div>
         </div>

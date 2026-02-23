@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { ApiResponse } from '@/types';
-// import { put } from '@vercel/blob'; // Uncomment when blob is ready
+import { uploadImage } from '@/lib/cloudinary'; // ✅ NEW import
 
 export async function POST(request: NextRequest) {
   try {
@@ -34,23 +34,35 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // TODO: Upload to Vercel Blob when token is available
-    // const blob = await put(screenshot.name, screenshot, {
-    //   access: 'public',
-    //   token: process.env.BLOB_READ_WRITE_TOKEN,
-    // });
-    // const screenshotUrl = blob.url;
+    // ✅ Validate file type before uploading
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+    if (!allowedTypes.includes(screenshot.type)) {
+      return NextResponse.json(
+        { success: false, error: 'Only JPG and PNG files are allowed' } as ApiResponse,
+        { status: 400 }
+      );
+    }
 
-    // Temporary: Use placeholder URL (replace with Blob later)
-    const screenshotUrl = `https://placeholder.com/deposit-${Date.now()}-${screenshot.name}`;
+    // ✅ Validate file size (5MB)
+    if (screenshot.size > 5 * 1024 * 1024) {
+      return NextResponse.json(
+        { success: false, error: 'File size must be less than 5MB' } as ApiResponse,
+        { status: 400 }
+      );
+    }
 
-    // Create deposit record
+    // ✅ Upload screenshot to Cloudinary
+    const arrayBuffer = await screenshot.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+    const screenshotUrl = await uploadImage(buffer, 'deposits');
+
+    // Create deposit record with real Cloudinary URL
     const deposit = await prisma.deposit.create({
       data: {
         userId: parseInt(userId),
         amount: parseFloat(amount),
         utrNumber,
-        screenshotUrl,
+        screenshotUrl, // ✅ Real URL: https://res.cloudinary.com/dgrttneu8/image/upload/deposits/xxx.jpg
         status: 'pending',
       },
     });
