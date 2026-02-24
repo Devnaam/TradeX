@@ -31,7 +31,8 @@ export default function AdminDashboard() {
     fetchStats();
   }, []);
 
-  const fetchStats = async () => {
+  // ❌ REMOVE THIS entire fetchStats function
+const fetchStats = async () => {
     try {
       const response = await fetch('/api/admin/dashboard');
 
@@ -49,16 +50,17 @@ export default function AdminDashboard() {
       } else {
         // If not successful, redirect to login
         console.error('Failed to fetch stats:', data.error);
-        router.push('/admin');
+        router.push('/admin');        // ← this is the problem line
       }
     } catch (error) {
       console.error('Failed to fetch stats:', error);
       // On error, redirect to login
-      router.push('/admin');
+      router.push('/admin');          // ← this is the problem line
     } finally {
       setLoading(false);
     }
   };
+
 
   const handleTriggerCron = async () => {
     if (!confirm('⚠️ This will trigger daily income for all active plans. Continue?')) {
