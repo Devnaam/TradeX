@@ -27,9 +27,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate amount
-    if (parseFloat(amount) < 300) {
+    if (parseFloat(amount) < 500) {
       return NextResponse.json(
-        { success: false, error: 'Minimum deposit amount is ₹300' } as ApiResponse,
+        { success: false, error: 'Minimum deposit amount is ₹500' } as ApiResponse,
         { status: 400 }
       );
     }

@@ -10,7 +10,7 @@ export default function DepositPage() {
   const [paymentMethod, setPaymentMethod] = useState<'upi' | 'bank'>('upi');
   const [error, setError] = useState('');
 
-  const quickAmounts = [300, 1000, 5000, 10000, 20000];
+  const quickAmounts = [500, 1000, 5000, 10000, 20000]; // ✅ 300 → 500
 
   const handleQuickAmount = (value: number) => {
     setAmount(value.toString());
@@ -28,12 +28,11 @@ export default function DepositPage() {
       return;
     }
 
-    if (amountNum < 300) {
-      setError('Minimum recharge amount is ₹300');
+    if (amountNum < 500) { // ✅ 300 → 500
+      setError('Minimum recharge amount is ₹500'); // ✅ 300 → 500
       return;
     }
 
-    // Store recharge details in session and navigate to manual payment page
     sessionStorage.setItem('recharge-amount', amount);
     sessionStorage.setItem('payment-method', paymentMethod);
     router.push('/user/deposit/manual');
@@ -41,7 +40,7 @@ export default function DepositPage() {
 
   return (
     <div className="min-h-screen bg-background pb-20">
-      
+
       {/* Header */}
       <div className="sticky top-0 z-50 bg-emerald-600 text-white shadow-lg">
         <div className="max-w-4xl mx-auto px-4 py-4">
@@ -65,11 +64,11 @@ export default function DepositPage() {
       </div>
 
       <div className="max-w-md mx-auto px-4 py-6 space-y-6">
-        
+
         {/* Recharge Form Card */}
         <div className="card !p-6 border-2 border-neutral-200 shadow-lg">
           <form onSubmit={handleSubmit} className="space-y-5">
-            
+
             {/* Error Message */}
             {error && (
               <div className="card !p-4 bg-red-50 border-2 border-red-500">
@@ -88,7 +87,7 @@ export default function DepositPage() {
                 <svg className="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                Enter Amount (Min: ₹300)
+                Enter Amount (Min: ₹500) {/* ✅ 300 → 500 */}
               </label>
               <input
                 type="number"
@@ -99,7 +98,7 @@ export default function DepositPage() {
                   setAmount(e.target.value);
                   setError('');
                 }}
-                min="300"
+                min="500" // ✅ 300 → 500
                 required
               />
             </div>
@@ -115,11 +114,10 @@ export default function DepositPage() {
                     key={value}
                     type="button"
                     onClick={() => handleQuickAmount(value)}
-                    className={`py-3 px-3 rounded-lg text-sm font-bold transition-all border-2 ${
-                      amount === value.toString()
+                    className={`py-3 px-3 rounded-lg text-sm font-bold transition-all border-2 ${amount === value.toString()
                         ? 'bg-emerald-600 text-white border-emerald-600 shadow-lg'
                         : 'bg-background text-foreground border-neutral-300 hover:border-emerald-600'
-                    }`}
+                      }`}
                   >
                     ₹{value.toLocaleString('en-IN')}
                   </button>
@@ -136,11 +134,10 @@ export default function DepositPage() {
                 Payment Method
               </label>
               <div className="space-y-3">
-                <label className={`flex items-center gap-3 p-4 border-2 rounded-lg cursor-pointer transition-all ${
-                  paymentMethod === 'upi' 
-                    ? 'border-emerald-600 bg-emerald-50' 
+                <label className={`flex items-center gap-3 p-4 border-2 rounded-lg cursor-pointer transition-all ${paymentMethod === 'upi'
+                    ? 'border-emerald-600 bg-emerald-50'
                     : 'border-neutral-300 hover:border-emerald-600/50'
-                }`}>
+                  }`}>
                   <input
                     type="radio"
                     name="paymentMethod"
@@ -166,11 +163,10 @@ export default function DepositPage() {
                   )}
                 </label>
 
-                <label className={`flex items-center gap-3 p-4 border-2 rounded-lg cursor-pointer transition-all ${
-                  paymentMethod === 'bank' 
-                    ? 'border-emerald-600 bg-emerald-50' 
+                <label className={`flex items-center gap-3 p-4 border-2 rounded-lg cursor-pointer transition-all ${paymentMethod === 'bank'
+                    ? 'border-emerald-600 bg-emerald-50'
                     : 'border-neutral-300 hover:border-emerald-600/50'
-                }`}>
+                  }`}>
                   <input
                     type="radio"
                     name="paymentMethod"
@@ -198,8 +194,8 @@ export default function DepositPage() {
             </div>
 
             {/* Submit Button */}
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold h-14 px-6 rounded-button transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -225,7 +221,7 @@ export default function DepositPage() {
                   <svg className="w-4 h-4 text-emerald-600 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                   </svg>
-                  <span>Minimum recharge amount is <strong>₹300</strong></span>
+                  <span>Minimum recharge amount is <strong>₹500</strong></span> {/* ✅ 300 → 500 */}
                 </li>
                 <li className="flex items-start gap-2">
                   <svg className="w-4 h-4 text-emerald-600 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -258,8 +254,6 @@ export default function DepositPage() {
           <span className="font-medium">Secure Payment Gateway</span>
         </div>
       </div>
-      
-      
     </div>
   );
 }

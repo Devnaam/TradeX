@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import QRCode from 'qrcode'; // ✅ NEW
 
 export default function ManualPaymentPage() {
   const router = useRouter();
@@ -13,13 +14,12 @@ export default function ManualPaymentPage() {
   const [loading, setLoading] = useState(false);
   const [loadingSettings, setLoadingSettings] = useState(true);
   const [error, setError] = useState('');
+  const [qrDataUrl, setQrDataUrl] = useState(''); // ✅ NEW
   const [paymentSettings, setPaymentSettings] = useState({
-    qrCodeUrl: '',
     upiId: '',
   });
 
   useEffect(() => {
-    // Get recharge details from session
     const storedAmount = sessionStorage.getItem('recharge-amount');
     const storedMethod = sessionStorage.getItem('payment-method');
 
@@ -30,45 +30,58 @@ export default function ManualPaymentPage() {
 
     setAmount(storedAmount);
     setPaymentMethod(storedMethod || 'upi');
-
-    // Fetch payment settings (QR code and UPI ID from admin)
     fetchPaymentSettings();
   }, [router]);
+
+  // ✅ NEW — Auto-generate QR when both amount & upiId are ready
+  useEffect(() => {
+    if (amount && paymentSettings.upiId && paymentSettings.upiId !== 'Contact Support') {
+      generateUPIQR(paymentSettings.upiId, amount);
+    }
+  }, [amount, paymentSettings.upiId]);
 
   const fetchPaymentSettings = async () => {
     try {
       const response = await fetch('/api/admin/settings');
       const data = await response.json();
-      
+
       if (data.success && data.data.settings) {
         setPaymentSettings({
-          qrCodeUrl: data.data.settings.qrCodeUrl,
           upiId: data.data.settings.upiId,
         });
       } else {
-        // Fallback if admin hasn't set payment details yet
-        setPaymentSettings({
-          qrCodeUrl: 'https://via.placeholder.com/300?text=QR+Code+Not+Set',
-          upiId: 'admin@paytm',
-        });
+        setPaymentSettings({ upiId: 'admin@paytm' });
         setError('⚠️ Admin has not configured payment settings yet. Please contact support.');
       }
     } catch (error) {
       console.error('Failed to fetch payment settings:', error);
-      setPaymentSettings({
-        qrCodeUrl: 'https://via.placeholder.com/300?text=Error+Loading+QR',
-        upiId: 'Contact Support',
-      });
+      setPaymentSettings({ upiId: 'Contact Support' });
       setError('Failed to load payment settings. Please try again or contact support.');
     } finally {
       setLoadingSettings(false);
     }
   };
 
+  // ✅ NEW — Generates UPI QR with exact amount pre-filled
+  const generateUPIQR = async (upiId: string, amt: string) => {
+    const upiUri = `upi://pay?pa=${upiId}&pn=Payment&am=${parseFloat(amt).toFixed(2)}&cu=INR&tn=Wallet%20Recharge`;
+    try {
+      const dataUrl = await QRCode.toDataURL(upiUri, {
+        width: 300,
+        margin: 2,
+        errorCorrectionLevel: 'H',
+        color: { dark: '#000000', light: '#ffffff' },
+      });
+      setQrDataUrl(dataUrl);
+    } catch (err) {
+      console.error('QR generation failed:', err);
+      setError('Failed to generate QR code. Please use UPI ID to pay manually.');
+    }
+  };
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      // Validate file
       if (file.size > 5 * 1024 * 1024) {
         setError('File size must be less than 5MB');
         return;
@@ -99,7 +112,6 @@ export default function ManualPaymentPage() {
     setLoading(true);
 
     try {
-      // Get user data
       const userData = localStorage.getItem('user');
       if (!userData) {
         router.push('/login');
@@ -107,14 +119,12 @@ export default function ManualPaymentPage() {
       }
       const user = JSON.parse(userData);
 
-      // Create FormData for file upload
       const formData = new FormData();
       formData.append('amount', amount);
       formData.append('utrNumber', utrNumber);
       formData.append('screenshot', screenshot);
       formData.append('paymentMethod', paymentMethod);
 
-      // Create deposit request
       const response = await fetch('/api/user/deposit/create', {
         method: 'POST',
         headers: {
@@ -126,11 +136,8 @@ export default function ManualPaymentPage() {
       const data = await response.json();
 
       if (data.success) {
-        // Clear session
         sessionStorage.removeItem('recharge-amount');
         sessionStorage.removeItem('payment-method');
-        
-        // Redirect to history
         alert('✅ Recharge request submitted successfully! Waiting for admin approval.');
         router.push('/user/deposit/history');
       } else {
@@ -153,14 +160,15 @@ export default function ManualPaymentPage() {
     alert('✅ UPI ID copied to clipboard!');
   };
 
+  // ✅ UPDATED — Downloads the dynamically generated QR
   const downloadQR = () => {
-    if (!paymentSettings.qrCodeUrl || paymentSettings.qrCodeUrl.includes('placeholder')) {
-      alert('⚠️ QR Code not available. Please contact support.');
+    if (!qrDataUrl) {
+      alert('⚠️ QR Code not ready yet. Please wait.');
       return;
     }
     const link = document.createElement('a');
-    link.href = paymentSettings.qrCodeUrl;
-    link.download = 'payment-qr-code.png';
+    link.href = qrDataUrl;
+    link.download = `payment-qr-₹${amount}.png`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -179,7 +187,7 @@ export default function ManualPaymentPage() {
 
   return (
     <div className="min-h-screen bg-background pb-20">
-      
+
       {/* Header */}
       <div className="sticky top-0 z-50 bg-emerald-600 text-white shadow-lg">
         <div className="max-w-4xl mx-auto px-4 py-4">
@@ -203,7 +211,7 @@ export default function ManualPaymentPage() {
       </div>
 
       <div className="max-w-md mx-auto px-4 py-6 space-y-6">
-        
+
         {/* Amount Card */}
         <div className="card !p-6 bg-emerald-600 text-white text-center border-0 shadow-xl">
           <p className="text-sm mb-1 opacity-90">Recharge Amount</p>
@@ -227,24 +235,37 @@ export default function ManualPaymentPage() {
           </div>
         )}
 
-        {/* QR Code */}
+        {/* QR Code — ✅ Now dynamically generated with exact amount */}
         <div className="card !p-6 text-center border-2 border-neutral-200">
-          <h3 className="text-lg font-bold text-foreground mb-4 flex items-center justify-center gap-2">
+          <h3 className="text-lg font-bold text-foreground mb-1 flex items-center justify-center gap-2">
             <svg className="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
             </svg>
             Scan QR Code to Pay
           </h3>
+
+          {/* ✅ Amount badge below title */}
+          <p className="text-xs text-emerald-700 font-semibold mb-4 bg-emerald-50 border border-emerald-200 rounded-full px-3 py-1 inline-block">
+            QR pre-filled with ₹{parseFloat(amount).toLocaleString('en-IN')}
+          </p>
+
           <div className="bg-white p-4 inline-block rounded-lg border-2 border-emerald-200">
-            <img
-              src={paymentSettings.qrCodeUrl}
-              alt="Payment QR Code"
-              className="w-64 h-64 object-contain mx-auto"
-              onError={(e) => {
-                (e.target as HTMLImageElement).src = 'https://via.placeholder.com/300?text=QR+Code+Error';
-              }}
-            />
+            {qrDataUrl ? (
+              <img
+                src={qrDataUrl}
+                alt={`UPI QR Code for ₹${amount}`}
+                className="w-64 h-64 object-contain mx-auto"
+              />
+            ) : (
+              <div className="w-64 h-64 flex items-center justify-center bg-neutral-100 rounded-lg">
+                <div className="text-center">
+                  <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-emerald-600 border-t-transparent mb-2"></div>
+                  <p className="text-xs text-neutral-500">Generating QR...</p>
+                </div>
+              </div>
+            )}
           </div>
+
           <button
             onClick={downloadQR}
             className="w-full bg-white hover:bg-neutral-50 text-emerald-600 font-bold h-12 px-6 rounded-button border-2 border-emerald-600 transition-all shadow-md hover:shadow-lg mt-4 flex items-center justify-center gap-2"
@@ -297,7 +318,7 @@ export default function ManualPaymentPage() {
             Submit Payment Details
           </h3>
           <form onSubmit={handleSubmit} className="space-y-5">
-            
+
             {/* UTR Number */}
             <div>
               <label className="block text-sm font-bold text-foreground mb-2">
@@ -412,6 +433,7 @@ export default function ManualPaymentPage() {
             </div>
           </div>
         </div>
+
       </div>
     </div>
   );
