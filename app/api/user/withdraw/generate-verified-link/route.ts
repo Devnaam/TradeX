@@ -58,7 +58,9 @@ export async function POST(request: NextRequest) {
     });
 
     // Generate shareable link
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+    const host = request.headers.get('host');
+    const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http';
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || `${protocol}://${host}`;
     const verifiedLink = `${baseUrl}/verified-withdrawal/${verificationToken}`;
 
     return NextResponse.json(
